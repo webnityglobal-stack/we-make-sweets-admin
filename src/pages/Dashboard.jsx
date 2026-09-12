@@ -278,14 +278,14 @@ const Dashboard = () => {
       </div>
 
       {/* Integration Status Badges */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5">
+      {/* <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-white">Client Integrations Status</h2>
           <span className="text-xs text-slate-400">Active APIs from Proposal</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"> */}
           {/* GA */}
-          <Link
+          {/* <Link
             to="/integrations/google-analytics"
             className="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 flex items-center gap-3 transition"
           >
@@ -299,10 +299,10 @@ const Dashboard = () => {
                 <span>{gaConfig?.realtimeVisitors || 28} Live Visitors</span>
               </div>
             </div>
-          </Link>
+          </Link> */}
 
           {/* WhatsApp Marketing */}
-          <Link
+          {/* <Link
             to="/integrations/whatsapp-marketing"
             className="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 flex items-center gap-3 transition"
           >
@@ -313,10 +313,10 @@ const Dashboard = () => {
               <div className="text-xs font-semibold text-white">WhatsApp Marketing</div>
               <div className="text-[10px] text-emerald-400">WABA Active • 98.5% Deliv.</div>
             </div>
-          </Link>
+          </Link> */}
 
           {/* WhatsApp Bot */}
-          <Link
+          {/* <Link
             to="/integrations/whatsapp-bot"
             className="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 flex items-center gap-3 transition"
           >
@@ -327,10 +327,10 @@ const Dashboard = () => {
               <div className="text-xs font-semibold text-white">WhatsApp Auto-Bot</div>
               <div className="text-[10px] text-teal-300">COD Confirmation & Tracking</div>
             </div>
-          </Link>
+          </Link> */}
 
           {/* Meta Ads */}
-          <Link
+          {/* <Link
             to="/integrations/meta-ads"
             className="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 flex items-center gap-3 transition"
           >
@@ -341,9 +341,9 @@ const Dashboard = () => {
               <div className="text-xs font-semibold text-white">Meta Ads & CAPI</div>
               <div className="text-[10px] text-blue-300">Pixel Active • 4.31x ROAS</div>
             </div>
-          </Link>
-        </div>
-      </div>
+          </Link> */}
+        {/* </div>
+      </div> */}
 
       {/* Recent Orders Table */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-6">

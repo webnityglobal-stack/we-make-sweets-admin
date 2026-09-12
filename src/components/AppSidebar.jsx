@@ -103,11 +103,11 @@ const AppSidebar = ({ navItems, ...props }) => {
                               <span className="truncate leading-tight font-medium">
                                 {subItem.title}
                               </span>
-                              {subItem.subtitle && (
+                              {/* {subItem.subtitle && (
                                 <span className={`text-[10px] truncate ${isActive ? 'text-pink-100' : 'text-slate-400'}`}>
                                   {subItem.subtitle}
                                 </span>
-                              )}
+                              )} */}
                             </div>
                           </Link>
                         </SidebarMenuButton>

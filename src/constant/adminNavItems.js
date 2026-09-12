@@ -41,34 +41,34 @@ export const adminNavItems = [
       },
     ],
   },
-  {
-    title: "Integrations & APIs",
-    items: [
-      {
-        title: "Google Analytics",
-        url: "/integrations/google-analytics",
-        icon: "BarChart3",
-      },
-      {
-        title: "WhatsApp Marketing API",
-        subtitle: "Client Credentials",
-        url: "/integrations/whatsapp-marketing",
-        icon: "MessageSquare",
-      },
-      {
-        title: "WhatsApp Bot",
-        subtitle: "Client Credentials",
-        url: "/integrations/whatsapp-bot",
-        icon: "Bot",
-      },
-      {
-        title: "Meta Ads Integration",
-        subtitle: "Client Credentials",
-        url: "/integrations/meta-ads",
-        icon: "Megaphone",
-      },
-    ],
-  },
+  // {
+  //   title: "Integrations & APIs",
+  //   items: [
+  //     {
+  //       title: "Google Analytics",
+  //       url: "/integrations/google-analytics",
+  //       icon: "BarChart3",
+  //     },
+  //     {
+  //       title: "WhatsApp Marketing API",
+  //       subtitle: "Client Credentials",
+  //       url: "/integrations/whatsapp-marketing",
+  //       icon: "MessageSquare",
+  //     },
+  //     {
+  //       title: "WhatsApp Bot",
+  //       subtitle: "Client Credentials",
+  //       url: "/integrations/whatsapp-bot",
+  //       icon: "Bot",
+  //     },
+  //     {
+  //       title: "Meta Ads Integration",
+  //       subtitle: "Client Credentials",
+  //       url: "/integrations/meta-ads",
+  //       icon: "Megaphone",
+  //     },
+  //   ],
+  // },
   {
     title: "Team & Administration",
     items: [
