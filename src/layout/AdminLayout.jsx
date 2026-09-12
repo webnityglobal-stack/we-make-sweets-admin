@@ -1,12 +1,12 @@
 import React from 'react';
-import AppSidebar from '@/components/super-admin/AppSidebar';
+import AppSidebar from '@/components/AppSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { adminNavItems } from '@/constant/super-admin/sidebar/adminNavItems';
+import { adminNavItems } from '@/constant/adminNavItems';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, ExternalLink, User, Bell } from 'lucide-react';
 
-const MainlayoutSuperAdmin = () => {
+const AdminLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -83,4 +83,4 @@ const MainlayoutSuperAdmin = () => {
   );
 };
 
-export default MainlayoutSuperAdmin;
+export default AdminLayout;

@@ -3,25 +3,25 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
 // Auth Components
-import Login from '@/components/common/Login';
+import Login from '@/pages/Login';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Layout
-import MainlayoutSuperAdmin from '@/layout/super-admin/MainlayoutSuperAdmin';
+import AdminLayout from '@/layout/AdminLayout';
 
 // Admin Panel Features (Lazy-loaded for optimal performance)
-const Dashboard = lazy(() => import('@/pages/super-admin/Dashboard'));
-const OrderManagement = lazy(() => import('@/pages/super-admin/OrderManagement'));
-const ProductManagement = lazy(() => import('@/pages/super-admin/ProductManagement'));
-const SalesReports = lazy(() => import('@/pages/super-admin/SalesReports'));
-const CodPrepaidCancelReports = lazy(() => import('@/pages/super-admin/CodPrepaidCancelReports'));
-const GoogleAnalyticsIntegration = lazy(() => import('@/pages/super-admin/GoogleAnalyticsIntegration'));
-const WhatsAppMarketingIntegration = lazy(() => import('@/pages/super-admin/WhatsAppMarketingIntegration'));
-const WhatsAppBotIntegration = lazy(() => import('@/pages/super-admin/WhatsAppBotIntegration'));
-const MetaAdsIntegration = lazy(() => import('@/pages/super-admin/MetaAdsIntegration'));
-const SubAdminManagement = lazy(() => import('@/pages/super-admin/SubAdminManagement'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const OrderManagement = lazy(() => import('@/pages/OrderManagement'));
+const ProductManagement = lazy(() => import('@/pages/ProductManagement'));
+const SalesReports = lazy(() => import('@/pages/SalesReports'));
+const CodPrepaidCancelReports = lazy(() => import('@/pages/CodPrepaidCancelReports'));
+const GoogleAnalyticsIntegration = lazy(() => import('@/pages/GoogleAnalyticsIntegration'));
+const WhatsAppMarketingIntegration = lazy(() => import('@/pages/WhatsAppMarketingIntegration'));
+const WhatsAppBotIntegration = lazy(() => import('@/pages/WhatsAppBotIntegration'));
+const MetaAdsIntegration = lazy(() => import('@/pages/MetaAdsIntegration'));
+const SubAdminManagement = lazy(() => import('@/pages/SubAdminManagement'));
 
 const PageLoader = () => (
   <div className="h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-400">
@@ -42,7 +42,7 @@ const Approute = () => {
       <Route
         element={
           <ProtectedRoute>
-            <MainlayoutSuperAdmin />
+            <AdminLayout />
           </ProtectedRoute>
         }
       >
@@ -130,9 +130,6 @@ const Approute = () => {
             </Suspense>
           }
         />
-
-        {/* Legacy redirects */}
-        <Route path="/super-admin/*" element={<Navigate to="/dashboard" replace />} />
       </Route>
 
       {/* Fallback */}
