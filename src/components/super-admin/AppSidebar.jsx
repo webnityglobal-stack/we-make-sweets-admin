@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Bot,
   Megaphone,
+  UserCheck,
   Store,
   Sparkles,
 } from 'lucide-react';
@@ -34,6 +35,7 @@ const iconMap = {
   MessageSquare: MessageSquare,
   Bot: Bot,
   Megaphone: Megaphone,
+  UserCheck: UserCheck,
 };
 
 const AppSidebar = ({ navItems, ...props }) => {

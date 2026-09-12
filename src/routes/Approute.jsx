@@ -21,6 +21,7 @@ const GoogleAnalyticsIntegration = lazy(() => import('@/pages/super-admin/Google
 const WhatsAppMarketingIntegration = lazy(() => import('@/pages/super-admin/WhatsAppMarketingIntegration'));
 const WhatsAppBotIntegration = lazy(() => import('@/pages/super-admin/WhatsAppBotIntegration'));
 const MetaAdsIntegration = lazy(() => import('@/pages/super-admin/MetaAdsIntegration'));
+const SubAdminManagement = lazy(() => import('@/pages/super-admin/SubAdminManagement'));
 
 const PageLoader = () => (
   <div className="h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-400">
@@ -118,6 +119,14 @@ const Approute = () => {
           element={
             <Suspense fallback={<PageLoader />}>
               <MetaAdsIntegration />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/sub-admins"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <SubAdminManagement />
             </Suspense>
           }
         />

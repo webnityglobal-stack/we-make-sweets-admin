@@ -10,10 +10,11 @@ const ProtectedRoute = ({ allowedRoles = [], children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Support both user.role === "admin" and user.role.name === "admin"
+  // Support both "admin" and "sub-admin" roles
   const userRole = typeof user?.role === "string" ? user.role : user?.role?.name || "admin";
+  const validAdminRoles = ["admin", "sub-admin", "super-admin"];
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole) && userRole !== "admin") {
+  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole) && !validAdminRoles.includes(userRole)) {
     return <Navigate to="/unauthorized" replace />;
   }
 

@@ -69,4 +69,15 @@ export const adminNavItems = [
       },
     ],
   },
+  {
+    title: "Team & Administration",
+    items: [
+      {
+        title: "Sub-Admins",
+        subtitle: "Shared Dashboard Access",
+        url: "/sub-admins",
+        icon: "UserCheck",
+      },
+    ],
+  },
 ];
