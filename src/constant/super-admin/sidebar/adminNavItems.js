@@ -1,27 +1,72 @@
-  export const adminNavItems = [
+export const adminNavItems = [
   {
-    title: "Management",
+    title: "Overview",
     items: [
       {
         title: "Dashboard",
-        url: "/super-admin/dashboard"
+        url: "/dashboard",
+        icon: "LayoutDashboard",
+      },
+    ],
+  },
+  {
+    title: "Store Management",
+    items: [
+      {
+        title: "Order Management",
+        url: "/orders",
+        icon: "ShoppingCart",
       },
       {
-        title: "Users",
-        url: "/super-admin/users"
+        title: "Product Management",
+        url: "/products",
+        icon: "Package",
+      },
+    ],
+  },
+  {
+    title: "Analytics & Reports",
+    items: [
+      {
+        title: "Sales Reports",
+        subtitle: "7/15/30 Days & Custom",
+        url: "/reports/sales",
+        icon: "TrendingUp",
       },
       {
-        title: "Roles",
-        url: "/super-admin/roles"
+        title: "COD / Prepaid / Cancel Reports",
+        subtitle: "RTO & Payment Insights",
+        url: "/reports/cod-prepaid-cancel",
+        icon: "CreditCard",
+      },
+    ],
+  },
+  {
+    title: "Integrations & APIs",
+    items: [
+      {
+        title: "Google Analytics",
+        url: "/integrations/google-analytics",
+        icon: "BarChart3",
       },
       {
-        title: "Leads",
-        url: "/super-admin/leads"
+        title: "WhatsApp Marketing API",
+        subtitle: "Client Credentials",
+        url: "/integrations/whatsapp-marketing",
+        icon: "MessageSquare",
       },
       {
-        title:"Add Employee",
-        url:"/super-admin/register"
-      }
-    ]
-  }
+        title: "WhatsApp Bot",
+        subtitle: "Client Credentials",
+        url: "/integrations/whatsapp-bot",
+        icon: "Bot",
+      },
+      {
+        title: "Meta Ads Integration",
+        subtitle: "Client Credentials",
+        url: "/integrations/meta-ads",
+        icon: "Megaphone",
+      },
+    ],
+  },
 ];

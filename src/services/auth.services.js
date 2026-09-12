@@ -1,25 +1,41 @@
 import api from "../api/axios.js";
 
-
 const authService = {
   login: async (credentials) => {
-    
-    const {data} = await api.post('/auth/login', credentials);  
+    try {
+      const response = await api.post('/auth/login', credentials);
+      const data = response.data;
 
-    if (data.data.token) {
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data.user));
+      if (data && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      return data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Login failed. Please check your credentials.';
+      throw new Error(message);
     }
-    return data.data;
   },
 
   register: async (userData) => {
-    const response = await api.post('/auth/register', userData); 
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    try {
+      const response = await api.post('/auth/signup', userData);
+      const data = response.data;
+      if (data && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      return data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Registration failed.';
+      throw new Error(message);
     }
-    return response.data;
   },
 
   logout: () => {
@@ -28,13 +44,19 @@ const authService = {
   },
 
   getCurrentUser: () => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      return null;
+    }
   },
 
   getToken: () => localStorage.getItem('token'),
 
-  isAuthenticated: () => !!localStorage.getItem('token'),
+  isAuthenticated: () => {
+    return Boolean(localStorage.getItem('token'));
+  },
 };
 
 export default authService;
