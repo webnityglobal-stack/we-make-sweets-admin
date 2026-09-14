@@ -29,29 +29,29 @@ export const useProducts = () => {
       await fetchProducts();
       return { success: true, data: result };
     } catch (err) {
-      // Fallback local update
-      const newProduct = {
-        _id: "local_" + Date.now(),
-        ...productData,
-        createdAt: new Date().toISOString(),
-      };
-      setProducts((prev) => [newProduct, ...prev]);
-      return { success: true, data: newProduct };
+      const msg = err.message || "Failed to add product";
+      throw new Error(msg);
     }
   };
 
   const updateProduct = async (id, productData) => {
-    await productService.updateProduct(id, productData);
-    setProducts((prev) =>
-      prev.map((p) => (p._id === id ? { ...p, ...productData } : p))
-    );
-    return { success: true };
+    try {
+      const res = await productService.updateProduct(id, productData);
+      await fetchProducts();
+      return { success: true, data: res };
+    } catch (err) {
+      throw new Error(err.message || "Failed to update product");
+    }
   };
 
   const deleteProduct = async (id) => {
-    await productService.deleteProduct(id);
-    setProducts((prev) => prev.filter((p) => p._id !== id));
-    return { success: true };
+    try {
+      await productService.deleteProduct(id);
+      setProducts((prev) => prev.filter((p) => p._id !== id));
+      return { success: true };
+    } catch (err) {
+      throw new Error(err.message || "Failed to delete product");
+    }
   };
 
   return {

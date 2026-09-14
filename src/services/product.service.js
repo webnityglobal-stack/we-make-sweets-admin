@@ -15,6 +15,7 @@ const fallbackProducts = [
     images: ["https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=500&auto=format&fit=crop&q=60"],
     weight: "250g",
     shelfLife: "6 Months",
+    storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
       { _id: "v1", title: "250g", salePrice: 349, mrp: 399, stock: 20, sku: "MSC251" },
@@ -36,6 +37,7 @@ const fallbackProducts = [
     images: ["https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=500&auto=format&fit=crop&q=60"],
     weight: "250g",
     shelfLife: "6 Months",
+    storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
       { _id: "v4", title: "250g", salePrice: 349, mrp: 399, stock: 20, sku: "MSC250" },
@@ -56,6 +58,7 @@ const fallbackProducts = [
     images: ["https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60"],
     weight: "400g",
     shelfLife: "6 Months",
+    storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
       { _id: "v6", title: "250g", salePrice: 249, mrp: 299, stock: 15, sku: "DN250" },
@@ -81,10 +84,99 @@ export const productService = {
 
   createProduct: async (productData) => {
     try {
-      const response = await api.post("/products", productData);
+      let payload;
+
+      if (productData instanceof FormData) {
+        payload = productData;
+      } else {
+        // Construct FormData according to exact backend schema & Postman requirements
+        const fd = new FormData();
+        fd.append("name", productData.name);
+
+        // Auto-generate clean unique slug from name (user does not have to enter it)
+        const baseSlug = (productData.name || "sweet")
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
+        fd.append("slug", `${baseSlug}-${Date.now()}`);
+
+        fd.append("shortDescription", productData.shortDescription || "");
+        fd.append("description", productData.description || "");
+        fd.append("salePrice", String(productData.salePrice || 0));
+        fd.append("mrp", String(productData.mrp || 0));
+        fd.append("rating", String(productData.rating || 4.7));
+        fd.append("stock", String(productData.stock || 0));
+        fd.append("isBestSeller", String(Boolean(productData.isBestSeller)));
+        fd.append("weight", productData.weight || "250g");
+        fd.append("shelfLife", productData.shelfLife || "6 Months");
+        fd.append(
+          "storage",
+          productData.storage ||
+            "Store in a cool and dry place. Keep away from direct sunlight."
+        );
+        fd.append("countryOfOrigin", productData.countryOfOrigin || "India");
+
+        // Generate unique Shiprocket ID to prevent unique index duplicate key error
+        const randomShiprocketId = 1000000000 + Math.floor(Math.random() * 900000);
+        fd.append("shiprocketId", String(randomShiprocketId));
+
+        // Format ingredients as JSON string array
+        const ingredientsArr = Array.isArray(productData.ingredients)
+          ? productData.ingredients
+          : typeof productData.ingredients === "string" && productData.ingredients.trim()
+          ? productData.ingredients.split(",").map((s) => s.trim()).filter(Boolean)
+          : ["100% Natural Ingredients", "Premium Dates", "Nuts", "Seeds"];
+        fd.append("ingredients", JSON.stringify(ingredientsArr));
+
+        // Format nutrition as JSON string object
+        const nutritionObj = productData.nutrition || {
+          calories: "168 kcal",
+          protein: "5.2 g",
+          iron: "2.1 mg",
+          phosphorus: "118 mg",
+          sugar: "7 g",
+          fat: "8.2 g",
+        };
+        fd.append("nutrition", JSON.stringify(nutritionObj));
+
+        // Format variants as JSON string array
+        const variantsArr =
+          Array.isArray(productData.variants) && productData.variants.length > 0
+            ? productData.variants
+            : [
+                {
+                  title: productData.weight || "250g",
+                  salePrice: Number(productData.salePrice) || 349,
+                  mrp: Number(productData.mrp) || 399,
+                  stock: Number(productData.stock) || 20,
+                  sku: `SKU-${Date.now().toString().slice(-6)}`,
+                  shiprocketId: randomShiprocketId + 1,
+                },
+              ];
+        fd.append("variants", JSON.stringify(variantsArr));
+
+        // Format coupons as JSON string array
+        const couponsArr = Array.isArray(productData.coupons) ? productData.coupons : [];
+        fd.append("coupons", JSON.stringify(couponsArr));
+
+        // NOTE: highlights is intentionally omitted as requested ("highlights nhi jayega body me vo fix hai")
+
+        // Append images if provided
+        if (productData.images && productData.images.length) {
+          for (let i = 0; i < productData.images.length; i++) {
+            fd.append("images", productData.images[i]);
+          }
+        }
+
+        payload = fd;
+      }
+
+      const response = await api.post("/products", payload);
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.message || error.message || "Failed to create product";
+      const message =
+        error.response?.data?.message || error.message || "Failed to create product";
       throw new Error(message);
     }
   },
@@ -102,8 +194,10 @@ export const productService = {
     try {
       const response = await api.delete(`/products/${id}`);
       return response.data;
-    } catch {
-      return { success: true, message: "Product deleted" };
+    } catch (error) {
+      const message =
+        error.response?.data?.message || error.message || "Failed to delete product";
+      throw new Error(message);
     }
   },
 };
