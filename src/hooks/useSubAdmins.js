@@ -4,12 +4,17 @@ import subAdminService from "../services/subadmin.service";
 export const useSubAdmins = () => {
   const [subAdmins, setSubAdmins] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fetchSubAdmins = useCallback(() => {
+  const fetchSubAdmins = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const data = subAdminService.getSubAdmins();
+      const data = await subAdminService.getSubAdmins();
       setSubAdmins(data);
+    } catch (err) {
+      console.error("Failed to load sub-admins:", err);
+      setError(err.message || "Failed to load sub-admins");
     } finally {
       setIsLoading(false);
     }
@@ -20,29 +25,34 @@ export const useSubAdmins = () => {
   }, [fetchSubAdmins]);
 
   const addSubAdmin = async (payload) => {
-    const res = await subAdminService.createSubAdmin(payload);
-    fetchSubAdmins();
-    return res;
+    try {
+      const res = await subAdminService.createSubAdmin(payload);
+      await fetchSubAdmins();
+      return res;
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const removeSubAdmin = (id) => {
-    subAdminService.deleteSubAdmin(id);
-    fetchSubAdmins();
-  };
-
-  const toggleSubAdminStatus = (id) => {
-    subAdminService.toggleStatus(id);
-    fetchSubAdmins();
+  const removeSubAdmin = async (id) => {
+    try {
+      const res = await subAdminService.deleteSubAdmin(id);
+      setSubAdmins((prev) => prev.filter((s) => (s._id || s.id) !== id));
+      return res;
+    } catch (err) {
+      throw err;
+    }
   };
 
   return {
     subAdmins,
     isLoading,
+    error,
     addSubAdmin,
     removeSubAdmin,
-    toggleSubAdminStatus,
     refresh: fetchSubAdmins,
   };
 };
 
 export default useSubAdmins;
+

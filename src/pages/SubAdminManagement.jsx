@@ -12,15 +12,17 @@ import {
   Lock,
   User,
   Loader2,
-  Sparkles,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 
 const SubAdminManagement = () => {
-  const { subAdmins, addSubAdmin, removeSubAdmin, toggleSubAdminStatus } = useSubAdmins();
+  const { subAdmins, isLoading, error, addSubAdmin, removeSubAdmin, refresh } = useSubAdmins();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -50,7 +52,7 @@ const SubAdminManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.phone || !formData.password) {
+    if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.password.trim()) {
       setErrorMsg('Please fill all required fields.');
       return;
     }
@@ -58,7 +60,12 @@ const SubAdminManagement = () => {
     setIsSubmitting(true);
     setErrorMsg('');
     try {
-      await addSubAdmin(formData);
+      await addSubAdmin({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        password: formData.password.trim(),
+      });
       setSuccessMsg(`Sub-Admin ${formData.name} successfully created!`);
       setTimeout(() => {
         setIsModalOpen(false);
@@ -68,6 +75,20 @@ const SubAdminManagement = () => {
       setErrorMsg(err.message || 'Failed to create sub-admin');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (admin) => {
+    const id = admin._id || admin.id;
+    if (window.confirm(`Are you sure you want to remove sub-admin "${admin.name}"?`)) {
+      try {
+        setDeletingId(id);
+        await removeSubAdmin(id);
+      } catch (err) {
+        alert(err.message || 'Failed to remove sub-admin');
+      } finally {
+        setDeletingId(null);
+      }
     }
   };
 
@@ -84,13 +105,25 @@ const SubAdminManagement = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenModal}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-lg shadow-pink-600/20 transition cursor-pointer"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>Create New Sub-Admin</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={refresh}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition cursor-pointer disabled:opacity-50"
+            title="Sync live sub-admins"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-pink-400' : ''}`} />
+            <span>Sync Live</span>
+          </button>
+
+          <button
+            onClick={handleOpenModal}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-lg shadow-pink-600/20 transition cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Create New Sub-Admin</span>
+          </button>
+        </div>
       </div>
 
       {/* Info Banner */}
@@ -101,6 +134,22 @@ const SubAdminManagement = () => {
           All sub-admins log in with their credentials at the same <span className="text-pink-400 font-mono">/login</span> page and have direct access to orders, sweet catalog, reports, and integrations. No separate complex roles needed!
         </div>
       </div>
+
+      {/* Error message banner */}
+      {error && (
+        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={refresh}
+            className="text-rose-300 hover:text-white underline font-semibold text-xs cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4">
@@ -135,71 +184,83 @@ const SubAdminManagement = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/70 text-xs">
-              {filteredSubAdmins.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-pink-500" />
+                      <span>Loading sub-admins from server...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredSubAdmins.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-500">
                     No sub-admins found. Click "Create New Sub-Admin" to add team members.
                   </td>
                 </tr>
               ) : (
-                filteredSubAdmins.map((admin) => (
-                  <tr key={admin.id} className="hover:bg-slate-800/40 transition">
-                    <td className="py-3.5 px-4 font-medium">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs">
-                          {admin.name[0]?.toUpperCase()}
+                filteredSubAdmins.map((admin) => {
+                  const id = admin._id || admin.id;
+                  return (
+                    <tr key={id} className="hover:bg-slate-800/40 transition">
+                      <td className="py-3.5 px-4 font-medium">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs">
+                            {admin.name?.[0]?.toUpperCase() || 'S'}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-white">{admin.name}</div>
+                            <div className="text-[10px] text-slate-400 font-mono">ID: {id?.slice(-8) || id}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-semibold text-white">{admin.name}</div>
-                          <div className="text-[10px] text-slate-400">ID: {admin.id}</div>
-                        </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <div className="text-slate-200">{admin.email}</div>
-                      <div className="text-[11px] text-slate-400">{admin.phone}</div>
-                    </td>
+                      <td className="py-3.5 px-4">
+                        <div className="text-slate-200">{admin.email}</div>
+                        <div className="text-[11px] text-slate-400">{admin.phone}</div>
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                        <ShieldCheck className="w-3 h-3" />
-                        <span>Sub-Admin</span>
-                      </span>
-                    </td>
+                      <td className="py-3.5 px-4">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          <ShieldCheck className="w-3 h-3" />
+                          <span>Sub-Admin</span>
+                        </span>
+                      </td>
 
-                    <td className="py-3.5 px-4 text-slate-400">
-                      {new Date(admin.createdAt).toLocaleDateString('en-IN', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </td>
+                      <td className="py-3.5 px-4 text-slate-400">
+                        {admin.createdAt
+                          ? new Date(admin.createdAt).toLocaleDateString('en-IN', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })
+                          : '—'}
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <button
-                        onClick={() => toggleSubAdminStatus(admin.id)}
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold cursor-pointer transition ${
-                          admin.status === 'Active'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-slate-800 text-slate-400 border border-slate-700'
-                        }`}
-                      >
-                        {admin.status}
-                      </button>
-                    </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          Active
+                        </span>
+                      </td>
 
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => removeSubAdmin(admin.id)}
-                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition cursor-pointer"
-                        title="Remove Sub-Admin"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => handleDelete(admin)}
+                          disabled={deletingId === id}
+                          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition cursor-pointer disabled:opacity-50"
+                          title="Remove Sub-Admin"
+                        >
+                          {deletingId === id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-400" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

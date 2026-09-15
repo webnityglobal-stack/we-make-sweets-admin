@@ -122,7 +122,7 @@ const AppSidebar = ({ navItems, ...props }) => {
 
         {/* Footer info */}
         <div className="p-3 text-[11px] text-slate-400 border-t border-slate-800/80 flex items-center justify-between">
-          <span>v2.4.0</span>
+          {/* <span>v2.4.0</span> */}
           <span className="text-slate-400 flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Connected
           </span>

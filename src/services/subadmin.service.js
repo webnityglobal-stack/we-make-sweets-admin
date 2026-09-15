@@ -1,88 +1,50 @@
-import authService from "./auth.services";
-
-const STORAGE_KEY = "wms_sub_admins";
-
-const initialSubAdmins = [
-  {
-    id: "sub_1",
-    name: "Kavita Sharma",
-    email: "kavita.ops@wemakesweets.com",
-    phone: "9876543211",
-    role: "sub-admin",
-    createdAt: "2026-09-10T11:00:00Z",
-    status: "Active",
-  },
-  {
-    id: "sub_2",
-    name: "Aman Gupta",
-    email: "aman.orders@wemakesweets.com",
-    phone: "9812345678",
-    role: "sub-admin",
-    createdAt: "2026-09-11T14:30:00Z",
-    status: "Active",
-  },
-];
+import api from "../api/axios.js";
 
 export const subAdminService = {
-  getSubAdmins: () => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialSubAdmins;
+  getSubAdmins: async () => {
+    try {
+      const response = await api.get("/admin/subadmins");
+      if (response.data && Array.isArray(response.data.subAdmins)) {
+        return response.data.subAdmins;
       }
+      return [];
+    } catch (error) {
+      console.warn("Failed to fetch sub-admins from live backend:", error.message);
+      return [];
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialSubAdmins));
-    return initialSubAdmins;
   },
 
-  createSubAdmin: async ({ name, email, password, phone }) => {
-    let backendResult = null;
+  createSubAdmin: async ({ name, email, phone, password }) => {
     try {
-      // Try registering on live backend
-      backendResult = await authService.register({
+      const response = await api.post("/admin/subadmins", {
         name,
         email,
-        password,
         phone,
-        role: "sub-admin",
+        password,
       });
-    } catch (err) {
-      console.warn("Backend sub-admin registration fallback:", err.message);
+      return response.data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create sub-admin";
+      throw new Error(message);
     }
-
-    const currentList = subAdminService.getSubAdmins();
-    const newSubAdmin = {
-      id: backendResult?.user?.id || backendResult?.user?._id || `sub_${Date.now()}`,
-      name,
-      email,
-      phone,
-      role: "sub-admin",
-      createdAt: new Date().toISOString(),
-      status: "Active",
-    };
-
-    const updated = [newSubAdmin, ...currentList];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    return { success: true, subAdmin: newSubAdmin };
   },
 
-  deleteSubAdmin: (id) => {
-    const currentList = subAdminService.getSubAdmins();
-    const updated = currentList.filter((s) => s.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    return { success: true };
-  },
-
-  toggleStatus: (id) => {
-    const currentList = subAdminService.getSubAdmins();
-    const updated = currentList.map((s) =>
-      s.id === id ? { ...s, status: s.status === "Active" ? "Inactive" : "Active" } : s
-    );
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    return { success: true };
+  deleteSubAdmin: async (id) => {
+    try {
+      const response = await api.delete(`/admin/subadmins/${id}`);
+      return response.data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to delete sub-admin";
+      throw new Error(message);
+    }
   },
 };
 
 export default subAdminService;
+

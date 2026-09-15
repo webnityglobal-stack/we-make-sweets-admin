@@ -42,8 +42,8 @@ const Login = () => {
   return (
     <div className='grid relative grid-cols-2 h-screen text-white bg-slate-900 overflow-hidden'>
       <img
-        src='/withoutBackground111.png'
-        className='absolute top-3 left-4 h-16 w-auto object-contain z-10'
+        src='/footerLogo.png'
+        className='absolute top-3 left-4 h-24 w-auto object-contain z-10'
         alt='Logo'
       />
 
