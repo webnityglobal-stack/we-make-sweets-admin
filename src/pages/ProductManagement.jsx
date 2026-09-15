@@ -18,6 +18,7 @@ import {
   Tag,
   Layers,
   HeartPulse,
+  Pencil,
 } from 'lucide-react';
 
 const getImageUrl = (img) => {
@@ -40,7 +41,7 @@ const formatFileSize = (bytes) => {
 };
 
 const ProductManagement = () => {
-  const { products, isLoading, addProduct, deleteProduct } = useProducts();
+  const { products, isLoading, addProduct, updateProduct, deleteProduct } = useProducts();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -50,14 +51,53 @@ const ProductManagement = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Accordion tabs in modal
+  // Accordion tabs in add modal
   const [showNutrition, setShowNutrition] = useState(false);
   const [showVariants, setShowVariants] = useState(false);
   const [showCoupons, setShowCoupons] = useState(false);
 
-  // Selected image files (up to 5)
+  // Selected image files (up to 5) for Add modal
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
+
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [existingImages, setExistingImages] = useState([]);
+  const [editSelectedFiles, setEditSelectedFiles] = useState([]);
+  const [editPreviewUrls, setEditPreviewUrls] = useState([]);
+  const [showEditNutrition, setShowEditNutrition] = useState(false);
+  const [showEditVariants, setShowEditVariants] = useState(false);
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [editSubmittingStatus, setEditSubmittingStatus] = useState('');
+  const [editErrorMessage, setEditErrorMessage] = useState('');
+  const [editSuccessMessage, setEditSuccessMessage] = useState('');
+
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    shortDescription: '',
+    description: '',
+    salePrice: 349,
+    mrp: 399,
+    rating: 4.7,
+    stock: 20,
+    isBestSeller: false,
+    weight: '250g',
+    shelfLife: '6 Months',
+    storage: 'Store in a cool and dry place. Keep away from direct sunlight.',
+    countryOfOrigin: 'India',
+    ingredients: 'Pumpkin Seeds, Sunflower Seeds, Flax Seeds, Sesame Seeds, Chia Seeds, Dates',
+    nutrition: {
+      calories: '168 kcal',
+      protein: '5.2 g',
+      iron: '2.1 mg',
+      phosphorus: '118 mg',
+      sugar: '7 g',
+      fat: '8.2 g',
+    },
+    variants: [],
+    coupons: [],
+  });
 
   // Form State matching MongoDB Schema & Postman requirements
   const [formData, setFormData] = useState({
@@ -350,6 +390,255 @@ const ProductManagement = () => {
     }
   };
 
+  const handleOpenEdit = (product) => {
+    editPreviewUrls.forEach((url) => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch (_) {}
+    });
+
+    setEditingProduct(product);
+
+    let ingredientsStr = '';
+    if (Array.isArray(product.ingredients)) {
+      ingredientsStr = product.ingredients.join(', ');
+    } else if (typeof product.ingredients === 'string') {
+      ingredientsStr = product.ingredients;
+    } else {
+      ingredientsStr = 'Pumpkin Seeds, Sunflower Seeds, Flax Seeds, Sesame Seeds, Chia Seeds, Dates';
+    }
+
+    const nutritionObj = {
+      calories: product.nutrition?.calories || '168 kcal',
+      protein: product.nutrition?.protein || '5.2 g',
+      iron: product.nutrition?.iron || '2.1 mg',
+      phosphorus: product.nutrition?.phosphorus || '118 mg',
+      sugar: product.nutrition?.sugar || '7 g',
+      fat: product.nutrition?.fat || '8.2 g',
+    };
+
+    const variantsList =
+      Array.isArray(product.variants) && product.variants.length > 0
+        ? product.variants.map((v, i) => ({
+            ...(v._id ? { _id: v._id } : {}),
+            title: v.title || '250g',
+            salePrice: v.salePrice ?? product.salePrice ?? 349,
+            mrp: v.mrp ?? product.mrp ?? 399,
+            stock: v.stock ?? product.stock ?? 20,
+            sku: v.sku || `SKU-${Date.now().toString().slice(-4)}-${i}`,
+            ...(v.shiprocketId ? { shiprocketId: v.shiprocketId } : {}),
+          }))
+        : [
+            {
+              title: product.weight || '250g',
+              salePrice: product.salePrice ?? 349,
+              mrp: product.mrp ?? 399,
+              stock: product.stock ?? 20,
+              sku: `SKU-${Date.now().toString().slice(-4)}`,
+            },
+          ];
+
+    setEditFormData({
+      name: product.name || '',
+      shortDescription: product.shortDescription || '',
+      description: product.description || '',
+      salePrice: product.salePrice ?? 349,
+      mrp: product.mrp ?? 399,
+      rating: product.rating ?? 4.7,
+      stock: product.stock ?? 20,
+      isBestSeller: Boolean(product.isBestSeller),
+      weight: product.weight || '250g',
+      shelfLife: product.shelfLife || '6 Months',
+      storage:
+        product.storage ||
+        'Store in a cool and dry place. Keep away from direct sunlight.',
+      countryOfOrigin: product.countryOfOrigin || 'India',
+      ingredients: ingredientsStr,
+      nutrition: nutritionObj,
+      variants: variantsList,
+      coupons: product.coupons || [],
+    });
+
+    setExistingImages(Array.isArray(product.images) ? product.images : []);
+    setEditSelectedFiles([]);
+    setEditPreviewUrls([]);
+    setEditErrorMessage('');
+    setEditSuccessMessage('');
+    setEditSubmittingStatus('');
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    editPreviewUrls.forEach((url) => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch (_) {}
+    });
+    setEditSelectedFiles([]);
+    setEditPreviewUrls([]);
+    setEditErrorMessage('');
+    setEditSuccessMessage('');
+    setEditSubmittingStatus('');
+    setEditingProduct(null);
+    setIsEditModalOpen(false);
+  };
+
+  const handleEditFileChange = (e) => {
+    const incomingFiles = Array.from(e.target.files || []);
+    if (incomingFiles.length === 0) return;
+
+    e.target.value = '';
+
+    const currentCount = editSelectedFiles.length;
+    const remainingSlots = 5 - currentCount;
+
+    if (remainingSlots <= 0) {
+      setEditErrorMessage('Maximum 5 replacement images allowed. Remove one to add another.');
+      return;
+    }
+
+    let filesToAdd = incomingFiles;
+    if (incomingFiles.length > remainingSlots) {
+      filesToAdd = incomingFiles.slice(0, remainingSlots);
+      setEditErrorMessage(`Only up to 5 replacement images allowed. Added ${remainingSlots} photo(s).`);
+    } else {
+      setEditErrorMessage('');
+    }
+
+    const newUrls = filesToAdd.map((file) => URL.createObjectURL(file));
+
+    setEditSelectedFiles((prev) => [...prev, ...filesToAdd]);
+    setEditPreviewUrls((prev) => [...prev, ...newUrls]);
+  };
+
+  const handleRemoveEditImage = (indexToRemove) => {
+    if (editPreviewUrls[indexToRemove]) {
+      try {
+        URL.revokeObjectURL(editPreviewUrls[indexToRemove]);
+      } catch (_) {}
+    }
+    setEditSelectedFiles((prev) => prev.filter((_, i) => i !== indexToRemove));
+    setEditPreviewUrls((prev) => prev.filter((_, i) => i !== indexToRemove));
+    setEditErrorMessage('');
+  };
+
+  const handleEditAddVariant = () => {
+    const nextSku = `SKU-${Date.now().toString().slice(-4)}`;
+    setEditFormData((prev) => ({
+      ...prev,
+      variants: [
+        ...prev.variants,
+        {
+          title: '500g',
+          salePrice: Math.round((prev.salePrice || 349) * 1.8),
+          mrp: Math.round((prev.mrp || 399) * 1.8),
+          stock: 10,
+          sku: nextSku,
+        },
+      ],
+    }));
+  };
+
+  const handleEditRemoveVariant = (index) => {
+    setEditFormData((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleEditVariantChange = (index, field, value) => {
+    setEditFormData((prev) => {
+      const updated = [...prev.variants];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, variants: updated };
+    });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditErrorMessage('');
+    setEditSuccessMessage('');
+
+    if (!editFormData.name.trim()) {
+      setEditErrorMessage('Please enter the product name.');
+      return;
+    }
+    if (!editFormData.shortDescription.trim()) {
+      setEditErrorMessage('Please enter a short description.');
+      return;
+    }
+    if (!editFormData.description.trim()) {
+      setEditErrorMessage('Please enter the full description.');
+      return;
+    }
+
+    setIsEditSubmitting(true);
+
+    try {
+      const fd = new FormData();
+      fd.append('name', editFormData.name.trim());
+      fd.append('shortDescription', editFormData.shortDescription.trim());
+      fd.append('description', editFormData.description.trim());
+      fd.append('salePrice', String(editFormData.salePrice));
+      fd.append('mrp', String(editFormData.mrp));
+      fd.append('rating', String(editFormData.rating || 4.7));
+      fd.append('stock', String(editFormData.stock));
+      fd.append('isBestSeller', String(Boolean(editFormData.isBestSeller)));
+      fd.append('weight', editFormData.weight);
+      fd.append('shelfLife', editFormData.shelfLife);
+      fd.append('storage', editFormData.storage);
+      fd.append('countryOfOrigin', editFormData.countryOfOrigin);
+
+      // Ingredients array
+      const ingredientsArr = editFormData.ingredients
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      fd.append('ingredients', JSON.stringify(ingredientsArr));
+
+      // Nutrition object
+      fd.append('nutrition', JSON.stringify(editFormData.nutrition));
+
+      // Variants array
+      const variantsArr = editFormData.variants.map((v, i) => ({
+        ...(v._id ? { _id: v._id } : {}),
+        title: v.title,
+        salePrice: Number(v.salePrice),
+        mrp: Number(v.mrp),
+        stock: Number(v.stock),
+        sku: v.sku || `SKU-${Date.now()}-${i}`,
+        ...(v.shiprocketId ? { shiprocketId: v.shiprocketId } : {}),
+      }));
+      fd.append('variants', JSON.stringify(variantsArr));
+
+      // Coupons array
+      fd.append('coupons', JSON.stringify(editFormData.coupons || []));
+
+      // Attach new image files if selected
+      if (editSelectedFiles.length > 0) {
+        setEditSubmittingStatus(`Optimizing ${editSelectedFiles.length} new photo(s)...`);
+        for (let i = 0; i < editSelectedFiles.length; i++) {
+          const original = editSelectedFiles[i];
+          const compressed = await compressImage(original, 2.5, 1920);
+          fd.append('images', compressed);
+        }
+      }
+
+      setEditSubmittingStatus('Saving changes to live backend...');
+      await updateProduct(editingProduct._id, fd);
+      setEditSuccessMessage('Product updated successfully!');
+
+      setTimeout(() => {
+        handleCloseEditModal();
+      }, 1200);
+    } catch (err) {
+      setEditErrorMessage(err.message || 'Failed to update product.');
+    } finally {
+      setIsEditSubmitting(false);
+      setEditSubmittingStatus('');
+    }
+  };
+
   const handleDelete = async (id, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       try {
@@ -530,6 +819,15 @@ const ProductManagement = () => {
                   </span>
 
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleOpenEdit(product)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition cursor-pointer text-xs font-semibold"
+                      title="Edit Product"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span>Edit</span>
+                    </button>
+
                     <button
                       onClick={() => handleDelete(product._id, product.name)}
                       disabled={deletingId === product._id}
@@ -1090,6 +1388,620 @@ const ProductManagement = () => {
                     <>
                       <Plus className="w-3.5 h-3.5" />
                       <span>Publish Sweet to Store</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 text-slate-200 shadow-2xl relative">
+            <button
+              onClick={handleCloseEditModal}
+              className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                <Pencil className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Edit Sweet Product</h2>
+                <p className="text-xs text-slate-400">
+                  Update details, pricing, variants, and nutrition for{' '}
+                  <span className="text-blue-400 font-semibold">{editingProduct?.name}</span>
+                </p>
+              </div>
+            </div>
+
+            {editErrorMessage && (
+              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs mb-4 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{editErrorMessage}</span>
+              </div>
+            )}
+
+            {editSuccessMessage && (
+              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>{editSuccessMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditSubmit} className="space-y-4 text-xs">
+              {/* Product Name */}
+              <div>
+                <label className="text-slate-300 font-medium block mb-1">
+                  Product Name <span className="text-pink-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Hello Cube / Multi Seed Cube"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Short & Full Description */}
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">
+                    Short Description <span className="text-pink-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="A crunchy and wholesome snack made with premium seeds."
+                    value={editFormData.shortDescription}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, shortDescription: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">
+                    Full Description <span className="text-pink-500">*</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    required
+                    placeholder="A delicious and healthy multi-seed snack cube made with natural ingredients..."
+                    value={editFormData.description}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, description: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Pricing & Stock */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">
+                    Sale Price (₹) <span className="text-pink-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={editFormData.salePrice}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, salePrice: Number(e.target.value) })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">
+                    MRP (₹) <span className="text-pink-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={editFormData.mrp}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, mrp: Number(e.target.value) })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">
+                    Stock Quantity <span className="text-pink-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={editFormData.stock}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, stock: Number(e.target.value) })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">Rating (0-5)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min={0}
+                    max={5}
+                    value={editFormData.rating}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, rating: Number(e.target.value) })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Weight, Shelf Life, Storage, Country */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">
+                    Net Weight <span className="text-pink-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="250g"
+                    value={editFormData.weight}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, weight: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">
+                    Shelf Life <span className="text-pink-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="6 Months"
+                    value={editFormData.shelfLife}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, shelfLife: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="text-slate-300 font-medium block mb-1">
+                    Storage Instruction <span className="text-pink-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Store in a cool and dry place."
+                    value={editFormData.storage}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, storage: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Existing Images Display */}
+              {existingImages.length > 0 && (
+                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-300 font-medium flex items-center gap-1.5 text-xs">
+                      <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Current Saved Images ({existingImages.length})</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500">Live on Server</span>
+                  </div>
+                  <div className="flex items-center gap-2 overflow-x-auto py-1">
+                    {existingImages.map((img, i) => (
+                      <div
+                        key={i}
+                        className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-700/80 flex-shrink-0 bg-slate-900"
+                      >
+                        <img
+                          src={getImageUrl(img)}
+                          alt={`Existing sweet ${i + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                        <span className="absolute bottom-0 inset-x-0 bg-black/70 text-[8px] text-center text-slate-300 font-mono">
+                          #{i + 1}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upload New Images (Optional) */}
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-slate-300 font-medium flex items-center gap-1.5">
+                    <Upload className="w-4 h-4 text-blue-400" />
+                    <span>Upload New Images (Optional - up to 5 photos)</span>
+                  </label>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      editSelectedFiles.length === 5
+                        ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                    }`}
+                  >
+                    {editSelectedFiles.length} / 5 Selected
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-slate-400 leading-tight">
+                  Leave empty to keep existing images. If you select new images, they will be uploaded to replace/update the product pictures.
+                </p>
+
+                {/* Thumbnails grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+                  {editSelectedFiles.map((file, i) => (
+                    <div
+                      key={i}
+                      className="relative rounded-xl overflow-hidden border border-slate-700/70 bg-slate-900 aspect-square group shadow-md"
+                    >
+                      <img
+                        src={editPreviewUrls[i]}
+                        alt={`New sweet preview ${i + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+
+                      <div className="absolute top-1.5 left-1.5 bg-black/75 backdrop-blur-sm text-[9px] font-bold px-1.5 py-0.5 rounded text-white shadow">
+                        {i === 0 ? (
+                          <span className="text-blue-400 font-extrabold">★ New Cover</span>
+                        ) : (
+                          <span>#{i + 1}</span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEditImage(i)}
+                        title="Remove image"
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center transition shadow-lg cursor-pointer hover:scale-110"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-1 px-1.5 text-[9px] text-slate-300 truncate">
+                        <span className="font-mono">{formatFileSize(file.size)}</span>
+                        {file.size > 2.5 * 1024 * 1024 && (
+                          <span className="text-emerald-400 text-[8px] font-medium block">
+                            Auto-optimized
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Add Image Button slot */}
+                  {editSelectedFiles.length < 5 && (
+                    <label className="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl aspect-square flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-blue-400 cursor-pointer bg-slate-950/40 hover:bg-blue-500/5 transition p-2 text-center group">
+                      <div className="w-7 h-7 rounded-lg bg-slate-800 group-hover:bg-blue-500/20 flex items-center justify-center transition">
+                        <Upload className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400" />
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-300 group-hover:text-blue-400">
+                        + Add Image
+                      </span>
+                      <span className="text-[9px] text-slate-500">
+                        ({5 - editSelectedFiles.length} slots left)
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleEditFileChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Ingredients */}
+              <div>
+                <label className="text-slate-300 font-medium block mb-1">
+                  Ingredients (Comma Separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Pumpkin Seeds, Sunflower Seeds, Flax Seeds, Dates"
+                  value={editFormData.ingredients}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, ingredients: e.target.value })
+                  }
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Collapsible: Nutrition Facts */}
+              <div className="border border-slate-800 rounded-xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowEditNutrition(!showEditNutrition)}
+                  className="w-full p-3 bg-slate-950/80 hover:bg-slate-950 flex items-center justify-between text-xs font-semibold text-slate-300 cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <HeartPulse className="w-3.5 h-3.5 text-emerald-400" />
+                    Nutrition Facts (Calories, Protein, Fat, Sugar...)
+                  </span>
+                  {showEditNutrition ? (
+                    <ChevronUp className="w-4 h-4 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
+
+                {showEditNutrition && (
+                  <div className="p-3.5 bg-slate-950/40 grid grid-cols-3 gap-2.5 border-t border-slate-800">
+                    <div>
+                      <span className="text-slate-400 text-[10px] block mb-0.5">Calories</span>
+                      <input
+                        type="text"
+                        value={editFormData.nutrition.calories}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            nutrition: {
+                              ...editFormData.nutrition,
+                              calories: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block mb-0.5">Protein</span>
+                      <input
+                        type="text"
+                        value={editFormData.nutrition.protein}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            nutrition: {
+                              ...editFormData.nutrition,
+                              protein: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block mb-0.5">Sugar</span>
+                      <input
+                        type="text"
+                        value={editFormData.nutrition.sugar}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            nutrition: {
+                              ...editFormData.nutrition,
+                              sugar: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block mb-0.5">Fat</span>
+                      <input
+                        type="text"
+                        value={editFormData.nutrition.fat}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            nutrition: {
+                              ...editFormData.nutrition,
+                              fat: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block mb-0.5">Iron</span>
+                      <input
+                        type="text"
+                        value={editFormData.nutrition.iron}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            nutrition: {
+                              ...editFormData.nutrition,
+                              iron: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block mb-0.5">Phosphorus</span>
+                      <input
+                        type="text"
+                        value={editFormData.nutrition.phosphorus}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            nutrition: {
+                              ...editFormData.nutrition,
+                              phosphorus: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Collapsible: Variants Builder */}
+              <div className="border border-slate-800 rounded-xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowEditVariants(!showEditVariants)}
+                  className="w-full p-3 bg-slate-950/80 hover:bg-slate-950 flex items-center justify-between text-xs font-semibold text-slate-300 cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-blue-400" />
+                    Product Variants ({editFormData.variants.length})
+                  </span>
+                  {showEditVariants ? (
+                    <ChevronUp className="w-4 h-4 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
+
+                {showEditVariants && (
+                  <div className="p-3.5 bg-slate-950/40 space-y-3 border-t border-slate-800">
+                    {editFormData.variants.map((v, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 grid grid-cols-5 gap-2 items-center"
+                      >
+                        <div>
+                          <span className="text-[9px] text-slate-400 block">Title</span>
+                          <input
+                            type="text"
+                            value={v.title}
+                            onChange={(e) =>
+                              handleEditVariantChange(idx, 'title', e.target.value)
+                            }
+                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-400 block">Sale (₹)</span>
+                          <input
+                            type="number"
+                            value={v.salePrice}
+                            onChange={(e) =>
+                              handleEditVariantChange(idx, 'salePrice', Number(e.target.value))
+                            }
+                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-400 block">MRP (₹)</span>
+                          <input
+                            type="number"
+                            value={v.mrp}
+                            onChange={(e) =>
+                              handleEditVariantChange(idx, 'mrp', Number(e.target.value))
+                            }
+                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-400 block">SKU</span>
+                          <input
+                            type="text"
+                            value={v.sku}
+                            onChange={(e) =>
+                              handleEditVariantChange(idx, 'sku', e.target.value)
+                            }
+                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
+                          />
+                        </div>
+                        <div className="text-right pt-3">
+                          {editFormData.variants.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleEditRemoveVariant(idx)}
+                              className="text-rose-400 hover:text-rose-300 text-[10px] underline cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={handleEditAddVariant}
+                      className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                    >
+                      + Add Another Variant
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Best Seller Checkbox */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="editIsBestSeller"
+                  checked={editFormData.isBestSeller}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, isBestSeller: e.target.checked })
+                  }
+                  className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                />
+                <label
+                  htmlFor="editIsBestSeller"
+                  className="text-slate-300 font-medium cursor-pointer"
+                >
+                  Mark as Best Seller Badge
+                </label>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={handleCloseEditModal}
+                  disabled={isEditSubmitting}
+                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditSubmitting}
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-blue-600/20 cursor-pointer disabled:opacity-60 transition"
+                >
+                  {isEditSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{editSubmittingStatus || 'Saving Changes...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span>Save Changes</span>
                     </>
                   )}
                 </button>

@@ -185,8 +185,10 @@ export const productService = {
     try {
       const response = await api.put(`/products/${id}`, productData);
       return response.data;
-    } catch {
-      return { success: true, product: { _id: id, ...productData } };
+    } catch (error) {
+      const message =
+        error.response?.data?.message || error.message || "Failed to update product";
+      throw new Error(message);
     }
   },
 
