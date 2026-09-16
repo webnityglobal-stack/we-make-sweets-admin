@@ -40,24 +40,24 @@ const Login = () => {
   const displayError = localError || authError;
 
   return (
-    <div className='grid relative grid-cols-2 h-screen text-white bg-slate-900 overflow-hidden'>
+    <div className='grid relative grid-cols-1 md:grid-cols-2 h-screen text-white bg-slate-900 overflow-hidden'>
       <img
         src='/footerLogo.png'
-        className='absolute top-3 left-4 h-24 w-auto object-contain z-10'
+        className='absolute top-3 left-4 h-20 md:h-24 w-auto object-contain z-10'
         alt='Logo'
       />
 
-      {/* first half */}
-      <div className='flex flex-col mt-28 w-[1000px] h-[500px] bg-[url("/registerCrm33.png")] bg-contain bg-no-repeat bg-center'>
-        {/* heading and main container */}
-        <div className='flex flex-col gap-20 px-5 py-4'>
-          <div></div>
-          <div className='flex flex-col px-30 gap-8'></div>
-        </div>
+      {/* first half - left side */}
+      <div className='hidden md:flex flex-col items-center justify-center relative p-8 pt-20 select-none'>
+        <img
+          src='/registerCrm3.png'
+          alt='We Make Sweets CRM'
+          className='w-full max-w-[540px] max-h-[75vh] object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-[1.02]'
+        />
       </div>
 
       {/* second half */}
-      <div className='flex flex-col gap-5 pr text-black justify-center items-center bg-white p-6 shadow-2xl rounded-l-3xl'>
+      <div className='flex flex-col gap-5 text-black justify-center items-center bg-white p-6 shadow-2xl md:rounded-l-3xl h-full'>
         {/* welcome section */}
         <div className='flex flex-col gap-1 text-center'>
           <div className='text-3xl font-bold tracking-tight text-gray-900'>Welcome Back!</div>

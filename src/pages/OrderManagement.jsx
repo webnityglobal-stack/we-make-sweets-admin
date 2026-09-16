@@ -23,6 +23,7 @@ import {
   CreditCard,
 } from 'lucide-react';
 import reportService from '@/services/report.service';
+import { printOrderSlip } from '@/lib/orderPrintSlip';
 
 const formatOrderDate = (dateStr) => {
   if (!dateStr) return '';
@@ -389,13 +390,23 @@ const OrderManagement = () => {
 
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-pink-400" />
-                          <span>View</span>
-                        </button>
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => printOrderSlip(order)}
+                            title="Print Slip / Tax Invoice"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition cursor-pointer hover:border-amber-500/40 hover:text-amber-300"
+                          >
+                            <Printer className="w-3.5 h-3.5 text-amber-400" />
+                            <span className="hidden sm:inline">Slip</span>
+                          </button>
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-pink-400" />
+                            <span>View</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -624,11 +635,11 @@ const OrderManagement = () => {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.print()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium cursor-pointer"
+                  onClick={() => printOrderSlip(selectedOrder)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold cursor-pointer transition shadow-sm"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Print Slip</span>
+                  <span>Print Slip / Tax Invoice</span>
                 </button>
                 <button
                   onClick={() => setSelectedOrder(null)}
