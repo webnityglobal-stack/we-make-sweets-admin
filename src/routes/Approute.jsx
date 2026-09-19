@@ -22,6 +22,7 @@ const WhatsAppMarketingIntegration = lazy(() => import('@/pages/WhatsAppMarketin
 const WhatsAppBotIntegration = lazy(() => import('@/pages/WhatsAppBotIntegration'));
 const MetaAdsIntegration = lazy(() => import('@/pages/MetaAdsIntegration'));
 const SubAdminManagement = lazy(() => import('@/pages/SubAdminManagement'));
+const HeroBannerManagement = lazy(() => import('@/pages/HeroBannerManagement'));
 
 const PageLoader = () => (
   <div className="h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-400">
@@ -71,6 +72,14 @@ const Approute = () => {
           element={
             <Suspense fallback={<PageLoader />}>
               <ProductManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/hero-banners"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <HeroBannerManagement />
             </Suspense>
           }
         />

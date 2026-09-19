@@ -19,6 +19,7 @@ import {
   Flame,
   XCircle,
   Calendar,
+  Sliders,
 } from 'lucide-react';
 
 const formatDate = (dateStr) => {
@@ -181,6 +182,13 @@ const Dashboard = () => {
             >
               <ShoppingCart className="w-3.5 h-3.5" />
               <span>View Orders</span>
+            </Link>
+            <Link
+              to="/hero-banners"
+              className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white px-3.5 py-2.5 rounded-xl font-semibold text-xs border border-white/25 transition backdrop-blur-sm"
+            >
+              <Sliders className="w-3.5 h-3.5 text-amber-300" />
+              <span>Hero Banners</span>
             </Link>
           </div>
         </div>

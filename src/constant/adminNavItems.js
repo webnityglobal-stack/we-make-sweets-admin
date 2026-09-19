@@ -22,6 +22,12 @@ export const adminNavItems = [
         url: "/products",
         icon: "Package",
       },
+      {
+        title: "Hero Banners",
+        subtitle: "3 Homepage Slider Slots",
+        url: "/hero-banners",
+        icon: "Sliders",
+      },
     ],
   },
   {

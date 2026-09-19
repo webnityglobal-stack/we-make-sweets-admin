@@ -23,6 +23,7 @@ import {
   UserCheck,
   Store,
   Sparkles,
+  Sliders,
 } from 'lucide-react';
 
 const iconMap = {
@@ -36,6 +37,7 @@ const iconMap = {
   Bot: Bot,
   Megaphone: Megaphone,
   UserCheck: UserCheck,
+  Sliders: Sliders,
 };
 
 const AppSidebar = ({ navItems, ...props }) => {
