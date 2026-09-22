@@ -54,6 +54,16 @@ export const useProducts = () => {
     }
   };
 
+  const deleteProductImage = async (productId, imageUrl) => {
+    try {
+      const res = await productService.deleteProductImage(productId, imageUrl);
+      await fetchProducts();
+      return { success: true, data: res };
+    } catch (err) {
+      throw new Error(err.message || "Failed to delete product image");
+    }
+  };
+
   return {
     products,
     isLoading,
@@ -62,6 +72,7 @@ export const useProducts = () => {
     addProduct,
     updateProduct,
     deleteProduct,
+    deleteProductImage,
   };
 };
 

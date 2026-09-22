@@ -23,13 +23,16 @@ import {
 
 const getImageUrl = (img) => {
   if (!img) return null;
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://salmon-coyote-671066.hostingersite.com/api';
+  const backendHost = apiUrl.replace(/\/api\/?$/, '');
+
   if (img.startsWith('http://') || img.startsWith('https://')) {
     if (img.includes('localhost:5000')) {
-      return img.replace('http://localhost:5000', 'https://wemakesweets-backend.onrender.com');
+      return img.replace('http://localhost:5000', backendHost);
     }
     return img;
   }
-  return `https://wemakesweets-backend.onrender.com${img.startsWith('/') ? '' : '/'}${img}`;
+  return `${backendHost}${img.startsWith('/') ? '' : '/'}${img}`;
 };
 
 const formatFileSize = (bytes) => {
@@ -41,11 +44,13 @@ const formatFileSize = (bytes) => {
 };
 
 const ProductManagement = () => {
-  const { products, isLoading, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { products, isLoading, addProduct, updateProduct, deleteProduct, deleteProductImage } =
+    useProducts();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingImageIdx, setDeletingImageIdx] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [submittingStatus, setSubmittingStatus] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -520,6 +525,42 @@ const ProductManagement = () => {
     setEditSelectedFiles((prev) => prev.filter((_, i) => i !== indexToRemove));
     setEditPreviewUrls((prev) => prev.filter((_, i) => i !== indexToRemove));
     setEditErrorMessage('');
+  };
+
+  const handleDeleteExistingImage = async (imgUrl, index) => {
+    if (!editingProduct?._id) return;
+
+    const confirm = window.confirm(
+      'Are you sure you want to delete this image from the product?\n\nThis will permanently remove the photo from the live product.'
+    );
+    if (!confirm) return;
+
+    try {
+      setDeletingImageIdx(index);
+      setEditErrorMessage('');
+      setEditSuccessMessage('');
+
+      await deleteProductImage(editingProduct._id, imgUrl);
+
+      // Remove from local state immediately
+      setExistingImages((prev) => prev.filter((_, i) => i !== index));
+      setEditSuccessMessage('Image deleted successfully from product!');
+
+      // Also update editingProduct in local state
+      setEditingProduct((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          images: Array.isArray(prev.images)
+            ? prev.images.filter((_, i) => i !== index)
+            : [],
+        };
+      });
+    } catch (err) {
+      setEditErrorMessage(err.message || 'Failed to delete image.');
+    } finally {
+      setDeletingImageIdx(null);
+    }
   };
 
   const handleEditAddVariant = () => {
@@ -1603,33 +1644,65 @@ const ProductManagement = () => {
                 </div>
               </div>
 
-              {/* Existing Images Display */}
+              {/* Existing Images Display with Delete capability */}
               {existingImages.length > 0 && (
-                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-300 font-medium flex items-center gap-1.5 text-xs">
                       <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
                       <span>Current Saved Images ({existingImages.length})</span>
                     </span>
-                    <span className="text-[10px] text-slate-500">Live on Server</span>
+                    <span className="text-[10px] text-slate-400">
+                      Click <strong className="text-rose-400">trash icon</strong> to delete photo permanently
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 overflow-x-auto py-1">
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
                     {existingImages.map((img, i) => (
                       <div
                         key={i}
-                        className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-700/80 flex-shrink-0 bg-slate-900"
+                        className="relative rounded-xl overflow-hidden border border-slate-700/80 bg-slate-900 aspect-square group shadow-md"
                       >
                         <img
                           src={getImageUrl(img)}
                           alt={`Existing sweet ${i + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => {
                             e.target.style.display = 'none';
                           }}
                         />
-                        <span className="absolute bottom-0 inset-x-0 bg-black/70 text-[8px] text-center text-slate-300 font-mono">
-                          #{i + 1}
-                        </span>
+
+                        {/* Cover / Index badge */}
+                        <div className="absolute top-1.5 left-1.5 bg-black/75 backdrop-blur-sm text-[9px] font-bold px-1.5 py-0.5 rounded text-white shadow">
+                          {i === 0 ? (
+                            <span className="text-pink-400 font-extrabold">Cover</span>
+                          ) : (
+                            <span>#{i + 1}</span>
+                          )}
+                        </div>
+
+                        {/* Delete Image Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteExistingImage(img, i)}
+                          disabled={deletingImageIdx === i}
+                          title="Delete this image permanently from product"
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center transition shadow-lg cursor-pointer hover:scale-110 disabled:opacity-50"
+                        >
+                          {deletingImageIdx === i ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3 h-3" />
+                          )}
+                        </button>
+
+                        {/* Deleting overlay */}
+                        {deletingImageIdx === i && (
+                          <div className="absolute inset-0 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center gap-1 z-10">
+                            <Loader2 className="w-4 h-4 animate-spin text-rose-400" />
+                            <span className="text-[9px] text-rose-300 font-semibold">Deleting...</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -202,6 +202,19 @@ export const productService = {
       throw new Error(message);
     }
   },
+
+  deleteProductImage: async (productId, imageUrl) => {
+    try {
+      const response = await api.delete(`/products/${productId}/image`, {
+        data: { image: imageUrl },
+      });
+      return response.data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message || error.message || "Failed to delete product image";
+      throw new Error(message);
+    }
+  },
 };
 
 export default productService;
