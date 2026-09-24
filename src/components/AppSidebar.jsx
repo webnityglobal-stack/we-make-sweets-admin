@@ -52,8 +52,11 @@ const AppSidebar = ({ navItems, ...props }) => {
           {/* Brand Header */}
           <div className="px-3 py-3 mb-4 rounded-xl bg-gradient-to-r from-pink-900/40 via-purple-900/30 to-amber-900/30 border border-pink-500/20">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-amber-500 flex items-center justify-center shadow-lg shadow-pink-500/20 text-white font-bold text-lg">
+              {/* <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-amber-500 flex items-center justify-center shadow-lg shadow-pink-500/20 text-white font-bold text-lg">
                 🍬
+              </div> */}
+              <div className="w-14 h-8 rounded-[3px]  flex items-center justify-center bg-white text-white font-bold text-lg">
+                <img  src='/withoutBackground111.png' alt ="withoutBackground111"/>
               </div>
               <div className="overflow-hidden">
                 <div className="font-bold text-white text-base tracking-tight leading-tight flex items-center gap-1.5">
