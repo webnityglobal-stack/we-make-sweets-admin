@@ -1,19 +1,37 @@
 import api from "../api/axios.js";
 
+/**
+ * Normalizes reel video URL.
+ * Handles both absolute URLs and relative paths (/uploads/reels/...).
+ */
+export const getReelVideoUrl = (urlOrPath) => {
+  if (!urlOrPath) return "";
+  if (urlOrPath.startsWith("http://") || urlOrPath.startsWith("https://")) {
+    return urlOrPath;
+  }
+  const apiUrl =
+    import.meta.env.VITE_API_URL ||
+    "https://salmon-coyote-671066.hostingersite.com/api";
+  const backendOrigin = apiUrl.replace(/\/api\/?$/, "");
+  return `${backendOrigin}${urlOrPath.startsWith("/") ? "" : "/"}${urlOrPath}`;
+};
+
 export const reelService = {
   /**
-   * Fetch all reels from backend if supported
+   * Fetch all reels from backend
+   * GET /api/reels
+   * Returns: { success: true, message: "Reels fetched successfully", count: number, reels: [...] }
    */
   getReels: async () => {
     try {
       const response = await api.get("/reels");
-      if (response.data && Array.isArray(response.data.reels)) {
-        return response.data.reels;
-      }
-      return null;
+      return response.data;
     } catch (error) {
-      // Endpoint may not be implemented on backend yet
-      return null;
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch reels";
+      throw new Error(message);
     }
   },
 

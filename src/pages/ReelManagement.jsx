@@ -17,12 +17,36 @@ import {
   Info,
   X,
   Plus,
+  HardDrive,
+  Calendar,
 } from "lucide-react";
+
+const formatFileSize = (bytes) => {
+  if (!bytes || isNaN(bytes)) return null;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return null;
+  try {
+    const d = new Date(dateString);
+    return d.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return null;
+  }
+};
 
 const ReelManagement = () => {
   const {
     reels,
     slots,
+    serverCount,
     maxReels,
     remainingSlots,
     loading,
@@ -88,6 +112,10 @@ const ReelManagement = () => {
       setCopiedUrl(null);
     }, 2000);
   };
+
+  const totalStorage = formatFileSize(
+    reels.reduce((acc, r) => acc + (Number(r.size) || 0), 0)
+  );
 
   return (
     <div className="space-y-6">
@@ -185,11 +213,12 @@ const ReelManagement = () => {
       )}
 
       {/* KPI Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
           <div>
             <div className="text-xs text-slate-400 font-medium">Total Reel Slots</div>
             <div className="text-2xl font-bold text-white mt-1">12 Slots Max</div>
+            <div className="text-[11px] text-slate-500 mt-0.5">Fixed Storefront Layout</div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-pink-400">
             <Film className="w-5 h-5" />
@@ -201,6 +230,9 @@ const ReelManagement = () => {
             <div className="text-xs text-slate-400 font-medium">Uploaded Reels</div>
             <div className="text-2xl font-bold text-emerald-400 mt-1">
               {reels.length} / 12 Active
+            </div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              Live server count: <span className="text-emerald-400 font-semibold">{serverCount}</span>
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -214,9 +246,27 @@ const ReelManagement = () => {
             <div className="text-2xl font-bold text-amber-400 mt-1">
               {remainingSlots} Slots Left
             </div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              {remainingSlots > 0 ? "Ready for upload" : "All slots full"}
+            </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
             <Sparkles className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+          <div>
+            <div className="text-xs text-slate-400 font-medium">Total Storage Used</div>
+            <div className="text-2xl font-bold text-purple-400 mt-1">
+              {totalStorage || "0 MB"}
+            </div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              Hostinger Cloud Storage
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <HardDrive className="w-5 h-5" />
           </div>
         </div>
       </div>
@@ -268,33 +318,36 @@ const ReelManagement = () => {
                   />
 
                   {/* Slot Number Badge */}
-                  <div className="absolute top-2 left-2 z-10">
+                  <div className="absolute top-2 left-2 z-20 pointer-events-none">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/75 backdrop-blur text-white border border-white/10 shadow">
                       #{slot.slot}
                     </span>
                   </div>
 
-                  {/* Top-Right Delete Action Button */}
-                  <div className="absolute top-2 right-2 z-10">
+                  {/* Top-Right Delete Action Button - Higher z-index to stay above play overlay */}
+                  <div className="absolute top-2 right-2 z-30">
                     <button
-                      onClick={() => handleDelete(reel.filename)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(reel.filename);
+                      }}
                       disabled={isDeleting}
-                      title="Delete Reel (DELETE /api/reels/:filename)"
-                      className="w-7 h-7 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center transition shadow-lg cursor-pointer hover:scale-110 disabled:opacity-50"
+                      title="Delete Reel"
+                      className="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white flex items-center justify-center transition-all shadow-lg cursor-pointer hover:scale-110 disabled:opacity-50 border border-white/20"
                     >
                       {isDeleting ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       )}
                     </button>
                   </div>
 
                   {/* Play Button Overlay on Hover */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-2 p-3 z-10">
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-2 p-3 z-10 pointer-events-none">
                     <button
                       onClick={() => setActiveVideoModal(reel)}
-                      className="w-12 h-12 rounded-full bg-pink-600 hover:bg-pink-500 text-white flex items-center justify-center shadow-xl cursor-pointer hover:scale-110 transition"
+                      className="w-12 h-12 rounded-full bg-pink-600 hover:bg-pink-500 text-white flex items-center justify-center shadow-xl cursor-pointer hover:scale-110 transition pointer-events-auto"
                       title="Play Reel Preview"
                     >
                       <Play className="w-5 h-5 ml-0.5 fill-white" />
@@ -302,7 +355,7 @@ const ReelManagement = () => {
 
                     <button
                       onClick={() => handleCopyUrl(reel.url)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/20 hover:bg-white/30 backdrop-blur text-white text-[10px] font-medium cursor-pointer transition shadow"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/20 hover:bg-white/30 backdrop-blur text-white text-[10px] font-medium cursor-pointer transition shadow pointer-events-auto"
                     >
                       {copiedUrl === reel.url ? (
                         <>
@@ -318,9 +371,13 @@ const ReelManagement = () => {
                     </button>
                   </div>
 
-                  {/* Bottom Filename Bar */}
-                  <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black via-black/70 to-transparent text-[9px] font-mono text-slate-300 truncate z-10">
-                    {reel.filename}
+                  {/* Bottom Filename & Meta Bar */}
+                  <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black via-black/85 to-transparent text-[9px] text-slate-300 z-10 space-y-0.5 pointer-events-none">
+                    <div className="font-mono truncate">{reel.filename}</div>
+                    <div className="flex items-center justify-between text-[8px] text-slate-400 font-sans">
+                      <span>{formatFileSize(reel.size) || "Video"}</span>
+                      {reel.createdAt && <span>{formatDate(reel.createdAt)}</span>}
+                    </div>
                   </div>
 
                   {/* Deleting overlay */}
@@ -364,11 +421,23 @@ const ReelManagement = () => {
           >
             {/* Header */}
             <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950">
-              <div className="flex items-center gap-2">
-                <Film className="w-4 h-4 text-pink-400" />
-                <span className="text-xs font-bold text-white truncate max-w-[220px]">
-                  {activeVideoModal.filename}
-                </span>
+              <div className="flex flex-col gap-0.5 min-w-0 pr-2">
+                <div className="flex items-center gap-1.5">
+                  <Film className="w-4 h-4 text-pink-400 flex-shrink-0" />
+                  <span className="text-xs font-bold text-white truncate max-w-[200px]">
+                    {activeVideoModal.filename}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  {activeVideoModal.size && (
+                    <span className="text-slate-300 font-medium">
+                      {formatFileSize(activeVideoModal.size)}
+                    </span>
+                  )}
+                  {activeVideoModal.createdAt && (
+                    <span>• {formatDate(activeVideoModal.createdAt)}</span>
+                  )}
+                </div>
               </div>
               <button
                 onClick={() => setActiveVideoModal(null)}

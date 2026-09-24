@@ -20,6 +20,8 @@ export const useReels = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
+  const [serverCount, setServerCount] = useState(0);
+
   // Sync to localStorage whenever reels state changes
   useEffect(() => {
     try {
@@ -29,17 +31,24 @@ export const useReels = () => {
     }
   }, [reels]);
 
-  // Attempt to fetch from backend on initial load if endpoint becomes available
+  // Fetch reels from live backend GET /api/reels
   const fetchReels = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const serverReels = await reelService.getReels();
-      if (serverReels && Array.isArray(serverReels)) {
-        setReels(serverReels.slice(0, MAX_REELS));
-      }
+      const data = await reelService.getReels();
+      
+      const reelList = Array.isArray(data?.reels)
+        ? data.reels
+        : Array.isArray(data)
+        ? data
+        : [];
+
+      setReels(reelList.slice(0, MAX_REELS));
+      setServerCount(typeof data?.count === "number" ? data.count : reelList.length);
     } catch (err) {
       console.warn("Server reels fetch fallback:", err.message);
+      setError(err.message || "Failed to fetch reels from server");
     } finally {
       setLoading(false);
     }
@@ -83,15 +92,12 @@ export const useReels = () => {
 
       const response = await reelService.uploadReels(fileList);
 
-      if (response && Array.isArray(response.reels)) {
-        setReels((prev) => {
-          const combined = [...prev, ...response.reels];
-          return combined.slice(0, MAX_REELS);
-        });
-        setSuccess(
-          response.message || `Uploaded ${response.reels.length} reel(s) successfully!`
-        );
-      }
+      setSuccess(
+        response?.message || `Uploaded ${fileList.length} reel(s) successfully!`
+      );
+
+      // Re-fetch latest live list from backend
+      await fetchReels();
 
       return response;
     } catch (err) {
@@ -114,18 +120,11 @@ export const useReels = () => {
       setSuccess(null);
 
       const response = await reelService.deleteReel(cleanFilename);
-      const deletedName = response?.filename || cleanFilename;
 
-      setReels((prev) =>
-        prev.filter((r) => {
-          const rName =
-            r.filename && r.filename.includes("/")
-              ? r.filename.split("/").filter(Boolean).pop()
-              : r.filename;
-          return rName !== deletedName && r.filename !== deletedName;
-        })
-      );
-      setSuccess(response.message || "Reel deleted successfully!");
+      setSuccess(response?.message || "Reel deleted successfully!");
+
+      // Re-fetch latest live list from backend
+      await fetchReels();
 
       return response;
     } catch (err) {
@@ -144,6 +143,7 @@ export const useReels = () => {
   return {
     reels,
     slots,
+    serverCount,
     maxReels: MAX_REELS,
     remainingSlots: MAX_REELS - reels.length,
     loading,
