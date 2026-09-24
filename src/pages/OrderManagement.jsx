@@ -612,7 +612,7 @@ const OrderManagement = () => {
             </div>
 
             {/* Action Bar */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+            {/* <div className="flex items-center justify-between pt-3 border-t border-slate-800">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400">Update Status:</span>
                 <select
@@ -631,7 +631,27 @@ const OrderManagement = () => {
                   <option value="CANCELLED">CANCELLED</option>
                 </select>
                 {statusUpdating && <Loader2 className="w-3.5 h-3.5 animate-spin text-pink-400" />}
-              </div>
+              </div> */}
+ <div className="flex items-center justify-center pt-3 border-t border-slate-800">
+              {/* <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">Update Status:</span>
+                <select
+                  value={selectedOrder.orderStatus}
+                  onChange={(e) =>
+                    handleStatusChange(selectedOrder._id || selectedOrder.orderId, e.target.value)
+                  }
+                  disabled={statusUpdating}
+                  className="bg-slate-800 border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                >
+                  <option value="PENDING">PENDING</option>
+                  <option value="CONFIRMED">CONFIRMED</option>
+                  <option value="PROCESSING">PROCESSING</option>
+                  <option value="SHIPPED">SHIPPED</option>
+                  <option value="DELIVERED">DELIVERED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
+                {statusUpdating && <Loader2 className="w-3.5 h-3.5 animate-spin text-pink-400" />}
+              </div> */}
 
               <div className="flex items-center gap-2">
                 <button
