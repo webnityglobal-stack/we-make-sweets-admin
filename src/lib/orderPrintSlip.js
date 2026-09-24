@@ -475,7 +475,7 @@ export function generateOrderSlipHTML(order) {
     <table class="header-table">
       <tr>
         <td style="width: 60%;">
-          <img src="${logoUrl}" class="company-logo" alt="We Make Sweets & Snacks" />
+          <img src="${logoUrl}" class="company-logo" alt="WeMake Sweets & Snacks" />
           <div class="company-name">${COMPANY_DETAILS.name}</div>
           <div class="company-sub">${COMPANY_DETAILS.addressLine1}</div>
           <div class="company-sub">${COMPANY_DETAILS.addressLine2}, ${COMPANY_DETAILS.cityStateZip}</div>
@@ -539,7 +539,7 @@ export function generateOrderSlipHTML(order) {
               <strong>Logistics Status:</strong> ${logisticsStatus}
             </div>
             <div class="info-row">
-              <strong>Platform:</strong> We Make Sweets Official Store
+              <strong>Platform:</strong> WeMake Sweets Official Store
             </div>
           </div>
         </td>
@@ -627,7 +627,7 @@ export function generateOrderSlipHTML(order) {
 
     <!-- Sweet Greeting Banner -->
     <div class="thank-you-banner">
-      ♥ Thank You for Choosing We Make Sweets & Snacks! We Serve Sweetness In Every Bite! ♥
+      ♥ Thank You for Choosing WeMake Sweets & Snacks! We Serve Sweetness In Every Bite! ♥
     </div>
   </div>
 </body>

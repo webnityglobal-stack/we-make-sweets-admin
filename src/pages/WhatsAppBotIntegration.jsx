@@ -18,10 +18,10 @@ const WhatsAppBotIntegration = () => {
   const [formData, setFormData] = useState({
     webhookUrl: waBotConfig?.webhookUrl || 'https://wemakesweets-backend.onrender.com/api/webhook/whatsapp',
     verifyToken: waBotConfig?.verifyToken || 'wemake_bot_secure_token_2026',
-    botName: waBotConfig?.botName || 'Mithai Mitra (We Make Sweets Bot)',
+    botName: waBotConfig?.botName || 'Mithai Mitra (WeMake Sweets Bot)',
     greetingMessage:
       waBotConfig?.greetingMessage ||
-      'Namaste! Welcome to We Make Sweets. How can I assist you today? 🍬\n1. Track Order 📦\n2. View Sweet Catalog 🍯\n3. Confirm COD Order ✅\n4. Talk to Support 💬',
+      'Namaste! Welcome to WeMake Sweets. How can I assist you today? 🍬\n1. Track Order 📦\n2. View Sweet Catalog 🍯\n3. Confirm COD Order ✅\n4. Talk to Support 💬',
     autoConfirmCod: waBotConfig?.autoConfirmCod ?? true,
     autoSendTracking: waBotConfig?.autoSendTracking ?? true,
   });
@@ -32,7 +32,7 @@ const WhatsAppBotIntegration = () => {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
-      text: 'Namaste! Welcome to We Make Sweets. How can I assist you today? 🍬\n\n1️⃣ Track Order 📦\n2️⃣ Confirm COD Order ✅\n3️⃣ Ingredients & Sugar-Free FAQ 🍯',
+      text: 'Namaste! Welcome to WeMake Sweets. How can I assist you today? 🍬\n\n1️⃣ Track Order 📦\n2️⃣ Confirm COD Order ✅\n3️⃣ Ingredients & Sugar-Free FAQ 🍯',
       time: '11:00 AM',
     },
   ]);
@@ -64,7 +64,7 @@ const WhatsAppBotIntegration = () => {
 
     // Dynamic Bot Reply Logic
     setTimeout(() => {
-      let reply = "I'm your We Make Sweets automated concierge. You can type 'track', 'cod', or 'sugar free' to test automated workflows!";
+      let reply = "I'm your WeMake Sweets automated concierge. You can type 'track', 'cod', or 'sugar free' to test automated workflows!";
       const lower = userText.toLowerCase();
 
       if (lower.includes('track') || lower.includes('order') || lower.includes('1')) {
@@ -72,7 +72,7 @@ const WhatsAppBotIntegration = () => {
       } else if (lower.includes('cod') || lower.includes('confirm') || lower.includes('2')) {
         reply = '✅ COD Order ORD-94811 Confirmed! Your package will be packed today with fresh sweets. Keep ₹649 cash or UPI ready at delivery.';
       } else if (lower.includes('sugar') || lower.includes('sweet') || lower.includes('ingredient') || lower.includes('3')) {
-        reply = '🍯 All We Make Sweets treats are crafted with 100% natural premium dates, roasted nuts, and multi-seeds. ZERO refined sugar, zero artificial preservatives, and zero palm oil!';
+        reply = '🍯 All WeMake Sweets treats are crafted with 100% natural premium dates, roasted nuts, and multi-seeds. ZERO refined sugar, zero artificial preservatives, and zero palm oil!';
       }
 
       setMessages((prev) => [

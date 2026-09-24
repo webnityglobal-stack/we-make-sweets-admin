@@ -101,7 +101,7 @@ const SubAdminManagement = () => {
             Sub-Admin Management
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Create and manage sub-admins who share access to the We Make Sweets control panel
+            Create and manage sub-admins who share access to the WeMake Sweets control panel
           </p>
         </div>
 

@@ -261,7 +261,7 @@ const MetaAdsIntegration = () => {
               <ShieldCheck className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-slate-300">
                 <strong className="text-white block mb-0.5">High Event Match Quality (9.8/10)</strong>
-                Because We Make Sweets server hashes customer phone numbers and emails before sending to Meta CAPI, your ad campaigns achieve optimal attribution and lower customer acquisition costs.
+                Because WeMake Sweets server hashes customer phone numbers and emails before sending to Meta CAPI, your ad campaigns achieve optimal attribution and lower customer acquisition costs.
               </div>
             </div>
           </div>

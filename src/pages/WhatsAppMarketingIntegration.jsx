@@ -246,7 +246,7 @@ const WhatsAppMarketingIntegration = () => {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <span>We Make Sweets</span>
+                    <span>WeMake Sweets</span>
                     <span className="text-[10px] text-emerald-400 bg-emerald-500/20 px-1 rounded font-normal">
                       Verified Business
                     </span>

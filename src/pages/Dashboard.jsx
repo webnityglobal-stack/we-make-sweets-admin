@@ -20,6 +20,7 @@ import {
   XCircle,
   Calendar,
   Sliders,
+  Film,
 } from 'lucide-react';
 
 const formatDate = (dateStr) => {
@@ -149,7 +150,7 @@ const Dashboard = () => {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold backdrop-blur mb-3">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>We Make Sweets E-Commerce Operations</span>
+              <span>WeMake Sweets E-Commerce Operations</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               Store Performance & Analytics
@@ -189,6 +190,13 @@ const Dashboard = () => {
             >
               <Sliders className="w-3.5 h-3.5 text-amber-300" />
               <span>Hero Banners</span>
+            </Link>
+            <Link
+              to="/reels"
+              className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white px-3.5 py-2.5 rounded-xl font-semibold text-xs border border-white/25 transition backdrop-blur-sm"
+            >
+              <Film className="w-3.5 h-3.5 text-pink-300" />
+              <span>Store Reels</span>
             </Link>
           </div>
         </div>

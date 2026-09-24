@@ -23,7 +23,7 @@ const AdminLayout = () => {
             <div className="flex items-center gap-4">
               <SidebarTrigger className="text-slate-300 hover:text-white" />
               <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
-                <span className="font-medium text-slate-200">We Make Sweets</span>
+                <span className="font-medium text-slate-200">WeMake Sweets</span>
                 <span>/</span>
                 <span className="text-pink-400 font-medium">Control Center</span>
               </div>

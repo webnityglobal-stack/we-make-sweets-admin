@@ -28,6 +28,12 @@ export const adminNavItems = [
         url: "/hero-banners",
         icon: "Sliders",
       },
+      {
+        title: "Store Reels",
+        subtitle: "Max 12 Short Videos",
+        url: "/reels",
+        icon: "Film",
+      },
     ],
   },
   {

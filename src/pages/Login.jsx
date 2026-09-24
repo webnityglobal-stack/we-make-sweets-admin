@@ -51,7 +51,7 @@ const Login = () => {
       <div className='hidden md:flex flex-col items-center justify-center relative p-8 pt-20 select-none'>
         <img
           src='/registerCrm3.png'
-          alt='We Make Sweets CRM'
+          alt='WeMake Sweets CRM'
           className='w-full max-w-[540px] max-h-[75vh] object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-[1.02]'
         />
       </div>
@@ -61,7 +61,7 @@ const Login = () => {
         {/* welcome section */}
         <div className='flex flex-col gap-1 text-center'>
           <div className='text-3xl font-bold tracking-tight text-gray-900'>Welcome Back!</div>
-          <div className='text-sm text-gray-600'>Sign in to We Make Sweets Admin Panel</div>
+          <div className='text-sm text-gray-600'>Sign in to WeMake Sweets Admin Panel</div>
         </div>
 
         {/* Demo credentials shortcut */}

@@ -24,6 +24,7 @@ import {
   Store,
   Sparkles,
   Sliders,
+  Film,
 } from 'lucide-react';
 
 const iconMap = {
@@ -38,6 +39,7 @@ const iconMap = {
   Megaphone: Megaphone,
   UserCheck: UserCheck,
   Sliders: Sliders,
+  Film: Film,
 };
 
 const AppSidebar = ({ navItems, ...props }) => {
@@ -55,7 +57,7 @@ const AppSidebar = ({ navItems, ...props }) => {
               </div>
               <div className="overflow-hidden">
                 <div className="font-bold text-white text-base tracking-tight leading-tight flex items-center gap-1.5">
-                  We Make Sweets
+                  WeMake Sweets
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 </div>
                 <div className="text-[11px] text-pink-300 font-medium">

@@ -68,7 +68,7 @@ const GoogleAnalyticsIntegration = () => {
             </div>
             <div>
               <h2 className="text-base font-semibold text-white">Client GA4 Credentials</h2>
-              <p className="text-xs text-slate-400">Connected to We Make Sweets domain</p>
+              <p className="text-xs text-slate-400">Connected to WeMake Sweets domain</p>
             </div>
           </div>
 
