@@ -73,12 +73,12 @@ export const adminNavItems = [
   //       url: "/integrations/whatsapp-bot",
   //       icon: "Bot",
   //     },
-  //     {
-  //       title: "Meta Ads Integration",
-  //       subtitle: "Client Credentials",
-  //       url: "/integrations/meta-ads",
-  //       icon: "Megaphone",
-  //     },
+      // {
+      //   title: "Meta Ads Integration",
+      //   subtitle: "Client Credentials",
+      //   url: "/integrations/meta-ads",
+      //   icon: "Megaphone",
+      // },
   //   ],
   // },
   {
