@@ -39,9 +39,9 @@ export const reelService = {
    * Upload one or more video reels
    * POST /api/reels/upload
    * Form-data key: 'reels' (File)
-   * Returns: { success: true, message: "Reels uploaded successfully", reels: [{ filename, url }] }
+   * Supports upload progress tracking and 5-minute timeout for large videos
    */
-  uploadReels: async (files) => {
+  uploadReels: async (files, onProgress) => {
     if (!files || (Array.isArray(files) && files.length === 0)) {
       throw new Error("Please select at least one reel video to upload");
     }
@@ -54,13 +54,36 @@ export const reelService = {
     });
 
     try {
-      const response = await api.post("/reels/upload", formData);
+      const response = await api.post("/reels/upload", formData, {
+        timeout: 300000, // 5 minutes timeout for large video files
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            if (typeof onProgress === "function") {
+              onProgress({
+                percentage: Math.min(percentCompleted, 100),
+                loaded: progressEvent.loaded,
+                total: progressEvent.total,
+                isProcessing: percentCompleted >= 100,
+              });
+            }
+          }
+        },
+      });
       return response.data;
     } catch (error) {
-      const message =
+      let message =
         error.response?.data?.message ||
         error.message ||
         "Failed to upload reel(s)";
+
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        message =
+          "Upload timed out. The video file is large or the network speed is slow. Please try again with good internet or a compressed video.";
+      }
+
       throw new Error(message);
     }
   },

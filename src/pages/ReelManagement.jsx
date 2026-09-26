@@ -51,6 +51,7 @@ const ReelManagement = () => {
     remainingSlots,
     loading,
     uploading,
+    uploadProgress,
     deletingFilename,
     error,
     success,
@@ -172,7 +173,13 @@ const ReelManagement = () => {
             ) : (
               <Upload className="w-3.5 h-3.5" />
             )}
-            <span>{uploading ? "Uploading..." : "Upload Reel(s)"}</span>
+            <span>
+              {uploading
+                ? uploadProgress?.isProcessing
+                  ? "Processing..."
+                  : `Uploading ${uploadProgress?.percentage || 0}%`
+                : "Upload Reel(s)"}
+            </span>
           </button>
 
           <a
@@ -186,6 +193,61 @@ const ReelManagement = () => {
           </a>
         </div>
       </div>
+
+      {/* Real-Time Upload Progress Card */}
+      {uploading && uploadProgress && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-pink-950/60 via-purple-950/50 to-slate-900 border border-pink-500/40 shadow-xl space-y-3 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-pink-500/20 border border-pink-500/30 text-pink-400 flex items-center justify-center flex-shrink-0">
+                <Loader2 className="w-5 h-5 animate-spin" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-white text-sm">
+                    {uploadProgress.isProcessing
+                      ? "Processing & Saving Video on Server..."
+                      : "Uploading Reel Video..."}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                    {uploadProgress.percentage}%
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  {uploadProgress.isProcessing ? (
+                    <span className="text-emerald-400 font-medium">
+                      ✓ Upload complete! Finalizing storage on Hostinger CDN...
+                    </span>
+                  ) : (
+                    <span>
+                      {formatFileSize(uploadProgress.loaded)} / {formatFileSize(uploadProgress.total)} ({uploadProgress.fileNames})
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="text-right hidden sm:block">
+              <span className="text-2xl font-black text-pink-400 font-mono">
+                {uploadProgress.percentage}%
+              </span>
+              <span className="text-[10px] text-slate-500 block">5m Extended Timeout Active</span>
+            </div>
+          </div>
+
+          {/* Progress Bar Track */}
+          <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5 shadow-inner">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                uploadProgress.isProcessing
+                  ? "bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 animate-pulse"
+                  : "bg-gradient-to-r from-pink-600 via-rose-500 to-amber-400"
+              }`}
+              style={{ width: `${Math.max(uploadProgress.percentage, 4)}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Alert Banners */}
       {success && (
@@ -399,15 +461,29 @@ const ReelManagement = () => {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="w-full h-full flex flex-col items-center justify-center p-3 text-center cursor-pointer group"
+                  className={`w-full h-full flex flex-col items-center justify-center p-3 text-center transition-all ${
+                    uploading
+                      ? "cursor-not-allowed opacity-80"
+                      : "cursor-pointer group"
+                  }`}
                 >
                   <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 group-hover:text-pink-400 group-hover:border-pink-500/30 transition mb-2">
-                    <Plus className="w-5 h-5" />
+                    {uploading && slot.slot === reels.length + 1 ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-pink-400" />
+                    ) : (
+                      <Plus className="w-5 h-5" />
+                    )}
                   </div>
                   <span className="text-xs font-semibold text-slate-400 group-hover:text-white transition">
                     Slot {slot.slot}
                   </span>
-                  <span className="text-[10px] text-slate-500 mt-0.5">Click to upload</span>
+                  <span className="text-[10px] text-slate-500 mt-0.5">
+                    {uploading && slot.slot === reels.length + 1
+                      ? uploadProgress?.isProcessing
+                        ? "Saving..."
+                        : `Uploading ${uploadProgress?.percentage || 0}%`
+                      : "Click to upload"}
+                  </span>
                 </button>
               )}
             </div>

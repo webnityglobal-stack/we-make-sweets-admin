@@ -8,6 +8,7 @@ export const useReels = () => {
   const [serverCount, setServerCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [deletingFilename, setDeletingFilename] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -86,8 +87,20 @@ export const useReels = () => {
       setUploading(true);
       setError(null);
       setSuccess(null);
+      setUploadProgress({
+        percentage: 0,
+        loaded: 0,
+        total: fileList.reduce((acc, f) => acc + (f.size || 0), 0),
+        isProcessing: false,
+        fileNames: fileList.map((f) => f.name).join(", "),
+      });
 
-      const response = await reelService.uploadReels(fileList);
+      const response = await reelService.uploadReels(fileList, (progress) => {
+        setUploadProgress((prev) => ({
+          ...prev,
+          ...progress,
+        }));
+      });
 
       setSuccess(
         response?.message || `Uploaded ${fileList.length} reel(s) successfully!`
@@ -102,6 +115,7 @@ export const useReels = () => {
       throw err;
     } finally {
       setUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -145,6 +159,7 @@ export const useReels = () => {
     remainingSlots: MAX_REELS - reels.length,
     loading,
     uploading,
+    uploadProgress,
     deletingFilename,
     error,
     success,
