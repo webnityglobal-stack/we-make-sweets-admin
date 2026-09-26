@@ -69,6 +69,7 @@ const getStatusBadge = (status) => {
 const Dashboard = () => {
   const {
     summary,
+    reelsCount,
     salesTrend,
     weeklyStats,
     paymentSplit,
@@ -197,6 +198,9 @@ const Dashboard = () => {
             >
               <Film className="w-3.5 h-3.5 text-pink-300" />
               <span>Store Reels</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500 text-white shadow">
+                {reelsCount || 0} / 12 Added
+              </span>
             </Link>
           </div>
         </div>

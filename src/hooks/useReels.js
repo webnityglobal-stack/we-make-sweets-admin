@@ -1,35 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import reelService from "../services/reel.service";
+import reelService, { getReelVideoUrl } from "../services/reel.service";
 
 const MAX_REELS = 12;
-const STORAGE_KEY = "wms_admin_uploaded_reels";
 
 export const useReels = () => {
-  const [reels, setReels] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [loading, setLoading] = useState(false);
+  const [reels, setReels] = useState([]);
+  const [serverCount, setServerCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deletingFilename, setDeletingFilename] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
-  const [serverCount, setServerCount] = useState(0);
-
-  // Sync to localStorage whenever reels state changes
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reels));
-    } catch (e) {
-      console.warn("Failed to persist reels to localStorage:", e);
-    }
-  }, [reels]);
 
   // Fetch reels from live backend GET /api/reels
   const fetchReels = useCallback(async () => {
@@ -44,10 +25,16 @@ export const useReels = () => {
         ? data
         : [];
 
-      setReels(reelList.slice(0, MAX_REELS));
+      // Normalize each reel URL to ensure full valid playback URL
+      const normalizedReels = reelList.map((r) => ({
+        ...r,
+        url: getReelVideoUrl(r.url || r.filename),
+      }));
+
+      setReels(normalizedReels.slice(0, MAX_REELS));
       setServerCount(typeof data?.count === "number" ? data.count : reelList.length);
     } catch (err) {
-      console.warn("Server reels fetch fallback:", err.message);
+      console.warn("Server reels fetch error:", err.message);
       setError(err.message || "Failed to fetch reels from server");
     } finally {
       setLoading(false);
@@ -56,6 +43,16 @@ export const useReels = () => {
 
   useEffect(() => {
     fetchReels();
+
+    // Auto-refresh when tab gains focus (e.g. after uploading via Postman)
+    const handleFocus = () => {
+      fetchReels();
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [fetchReels]);
 
   // Construct structured 12 slots

@@ -122,14 +122,20 @@ const ReelManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
               <Film className="w-7 h-7 text-pink-500" />
               Storefront Reels Management
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pink-500/10 text-pink-400 border border-pink-500/20">
-              Max {maxReels} Reels
+              {reels.length} / {maxReels} Reels Added
             </span>
+            {loading && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                <Loader2 className="w-3 h-3 animate-spin text-pink-400" />
+                <span>Syncing live...</span>
+              </span>
+            )}
           </div>
           <p className="text-slate-400 text-sm mt-1">
             Upload and manage short video reels for the storefront homepage. Exactly 12 slots available.
@@ -227,9 +233,9 @@ const ReelManagement = () => {
 
         <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Uploaded Reels</div>
+            <div className="text-xs text-slate-400 font-medium">Reels Added (Active)</div>
             <div className="text-2xl font-bold text-emerald-400 mt-1">
-              {reels.length} / 12 Active
+              {reels.length} / 12 Added
             </div>
             <div className="text-[11px] text-slate-400 mt-0.5">
               Live server count: <span className="text-emerald-400 font-semibold">{serverCount}</span>
