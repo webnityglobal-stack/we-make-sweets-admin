@@ -53,14 +53,14 @@ export const adminNavItems = [
       },
     ],
   },
-  // {
-  //   title: "Integrations & APIs",
-  //   items: [
-  //     {
-  //       title: "Google Analytics",
-  //       url: "/integrations/google-analytics",
-  //       icon: "BarChart3",
-  //     },
+  {
+    title: "Integrations & APIs",
+    items: [
+      {
+        title: "Google Analytics",
+        url: "/integrations/google-analytics",
+        icon: "BarChart3",
+      },
   //     {
   //       title: "WhatsApp Marketing API",
   //       subtitle: "Client Credentials",
@@ -73,14 +73,14 @@ export const adminNavItems = [
   //       url: "/integrations/whatsapp-bot",
   //       icon: "Bot",
   //     },
-      // {
-      //   title: "Meta Ads Integration",
-      //   subtitle: "Client Credentials",
-      //   url: "/integrations/meta-ads",
-      //   icon: "Megaphone",
-      // },
-  //   ],
-  // },
+      {
+        title: "Meta Ads Integration",
+        subtitle: "Client Credentials",
+        url: "/integrations/meta-ads",
+        icon: "Megaphone",
+      },
+    ],
+  },
   {
     title: "Team & Administration",
     items: [
