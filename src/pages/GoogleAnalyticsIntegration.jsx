@@ -661,7 +661,7 @@ const GoogleAnalyticsIntegration = () => {
           )}
 
           {/* If full-width view, display credentials as collapsible bar below */}
-          {fullWidthView && (
+          {/* {fullWidthView && (
             <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
@@ -741,7 +741,7 @@ const GoogleAnalyticsIntegration = () => {
                 </form>
               )}
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
