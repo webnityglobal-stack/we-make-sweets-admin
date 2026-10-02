@@ -16,7 +16,7 @@ const WhatsAppBotIntegration = () => {
   const { waBotConfig, updateWABot } = useIntegrations();
 
   const [formData, setFormData] = useState({
-    webhookUrl: waBotConfig?.webhookUrl || 'https://wemakesweets-backend.onrender.com/api/webhook/whatsapp',
+    webhookUrl: waBotConfig?.webhookUrl || 'https://salmon-coyote-671066.hostingersite.com/api/webhook/whatsapp',
     verifyToken: waBotConfig?.verifyToken || 'wemake_bot_secure_token_2026',
     botName: waBotConfig?.botName || 'Mithai Mitra (WeMake Sweets Bot)',
     greetingMessage:

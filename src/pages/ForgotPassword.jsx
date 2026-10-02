@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios.js";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -18,13 +18,9 @@ export default function ForgotPassword() {
       setLoading(true);
       setMessage("");
 
-      const res = await axios.post(
-        // "http://localhost:5000/api/v1/auth/forgot-password",
-        'https://api.webnityglobal.in/api/v1/auth/forgot-password',
-        {
-          email,
-        }
-      );
+      const res = await api.post("/auth/forgot-password", {
+        email,
+      });
 
       setMessage(res.data.message);
       setEmail("");

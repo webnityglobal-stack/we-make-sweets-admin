@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios.js";
 
 export default function ResetPassword() {
 
@@ -19,13 +19,11 @@ export default function ResetPassword() {
 
             setLoading(true);
 
-            await axios.post(
-                // `http://localhost:5000/api/v1/auth/reset-password/${token}`,
-                `https://api.webnityglobal.in/api/v1/auth/reset-password/${token}`,
-                {
-                    password,
-                }
-            );
+            await api.post(`/auth/reset-password`, {
+                token,
+                password,
+                newPassword: password,
+            });
 
             alert("Password updated successfully");
 

@@ -6,13 +6,29 @@ import api from "../api/axios.js";
  */
 export const getReelVideoUrl = (urlOrPath) => {
   if (!urlOrPath) return "";
-  if (urlOrPath.startsWith("http://") || urlOrPath.startsWith("https://")) {
-    return urlOrPath;
-  }
+
   const apiUrl =
     import.meta.env.VITE_API_URL ||
     "https://salmon-coyote-671066.hostingersite.com/api";
   const backendOrigin = apiUrl.replace(/\/api\/?$/, "");
+
+  if (urlOrPath.startsWith("http://") || urlOrPath.startsWith("https://")) {
+    if (
+      urlOrPath.includes("localhost:5000") ||
+      urlOrPath.includes("wemakesweets-backend.onrender.com")
+    ) {
+      return urlOrPath
+        .replace(/https?:\/\/localhost:5000/, backendOrigin)
+        .replace(/https?:\/\/wemakesweets-backend\.onrender\.com/, backendOrigin);
+    }
+    return urlOrPath;
+  }
+
+  // Bare filename without leading slash or path
+  if (!urlOrPath.includes("/")) {
+    return `${apiUrl}/reels/${urlOrPath}`;
+  }
+
   return `${backendOrigin}${urlOrPath.startsWith("/") ? "" : "/"}${urlOrPath}`;
 };
 

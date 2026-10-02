@@ -6,11 +6,24 @@ import api from "../api/axios.js";
  */
 export const getHeroImageUrl = (imagePath) => {
   if (!imagePath) return null;
+
+  const apiUrl =
+    import.meta.env.VITE_API_URL ||
+    "https://salmon-coyote-671066.hostingersite.com/api";
+  const backendOrigin = apiUrl.replace(/\/api\/?$/, "");
+
   if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    if (
+      imagePath.includes("localhost:5000") ||
+      imagePath.includes("wemakesweets-backend.onrender.com")
+    ) {
+      return imagePath
+        .replace(/https?:\/\/localhost:5000/, backendOrigin)
+        .replace(/https?:\/\/wemakesweets-backend\.onrender\.com/, backendOrigin);
+    }
     return imagePath;
   }
-  const apiUrl = import.meta.env.VITE_API_URL || "https://wemakesweets-backend.onrender.com/api";
-  const backendOrigin = apiUrl.replace(/\/api\/?$/, "");
+
   return `${backendOrigin}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
 };
 

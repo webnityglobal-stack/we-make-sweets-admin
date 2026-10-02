@@ -94,7 +94,7 @@ export const integrationService = {
     const saved = localStorage.getItem(STORAGE_KEYS.WA_BOT);
     if (saved) return JSON.parse(saved);
     return {
-      webhookUrl: "https://wemakesweets-backend.onrender.com/api/webhook/whatsapp",
+      webhookUrl: "https://salmon-coyote-671066.hostingersite.com/api/webhook/whatsapp",
       verifyToken: "wemake_bot_secure_token_2026",
       botName: "Mithai Mitra (We Make Sweets Bot)",
       isActive: true,

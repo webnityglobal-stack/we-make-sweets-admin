@@ -30,6 +30,9 @@ const getImageUrl = (img) => {
     if (img.includes('localhost:5000')) {
       return img.replace('http://localhost:5000', backendHost);
     }
+    if (img.includes('wemakesweets-backend.onrender.com')) {
+      return img.replace('https://wemakesweets-backend.onrender.com', backendHost);
+    }
     return img;
   }
   return `${backendHost}${img.startsWith('/') ? '' : '/'}${img}`;
