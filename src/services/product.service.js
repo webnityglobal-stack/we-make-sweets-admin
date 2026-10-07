@@ -18,9 +18,9 @@ const fallbackProducts = [
     storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
-      { _id: "v1", title: "250g", weight: 250, salePrice: 349, mrp: 399, stock: 20, sku: "MSC251", length: 20, breadth: 15, height: 10 },
-      { _id: "v2", title: "500g", weight: 500, salePrice: 649, mrp: 749, stock: 12, sku: "MSC501", length: 22, breadth: 16, height: 12 },
-      { _id: "v3", title: "1kg", weight: 1000, salePrice: 1199, mrp: 1399, stock: 6, sku: "MSC1001", length: 25, breadth: 18, height: 15 },
+      { _id: "v1", title: "250g", weight: 0.25, salePrice: 349, mrp: 399, stock: 20, sku: "MSC251", length: 20, breadth: 15, height: 10 },
+      { _id: "v2", title: "500g", weight: 0.5, salePrice: 649, mrp: 749, stock: 12, sku: "MSC501", length: 22, breadth: 16, height: 12 },
+      { _id: "v3", title: "1kg", weight: 1, salePrice: 1199, mrp: 1399, stock: 6, sku: "MSC1001", length: 25, breadth: 18, height: 15 },
     ],
   },
   {
@@ -40,8 +40,8 @@ const fallbackProducts = [
     storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
-      { _id: "v4", title: "250g", weight: 250, salePrice: 349, mrp: 399, stock: 20, sku: "MSC250", length: 20, breadth: 15, height: 10 },
-      { _id: "v5", title: "500g", weight: 500, salePrice: 649, mrp: 749, stock: 12, sku: "MSC500", length: 22, breadth: 16, height: 12 },
+      { _id: "v4", title: "250g", weight: 0.25, salePrice: 349, mrp: 399, stock: 20, sku: "MSC250", length: 20, breadth: 15, height: 10 },
+      { _id: "v5", title: "500g", weight: 0.5, salePrice: 649, mrp: 749, stock: 12, sku: "MSC500", length: 22, breadth: 16, height: 12 },
     ],
   },
   {
@@ -61,9 +61,9 @@ const fallbackProducts = [
     storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
-      { _id: "v6", title: "250g", weight: 250, salePrice: 249, mrp: 299, stock: 15, sku: "DN250", length: 20, breadth: 15, height: 10 },
-      { _id: "v7", title: "500g", weight: 500, salePrice: 449, mrp: 499, stock: 10, sku: "DN500", length: 22, breadth: 16, height: 12 },
-      { _id: "v8", title: "1kg", weight: 1000, salePrice: 849, mrp: 949, stock: 5, sku: "DN1000", length: 25, breadth: 18, height: 15 },
+      { _id: "v6", title: "250g", weight: 0.25, salePrice: 249, mrp: 299, stock: 15, sku: "DN250", length: 20, breadth: 15, height: 10 },
+      { _id: "v7", title: "500g", weight: 0.5, salePrice: 449, mrp: 499, stock: 10, sku: "DN500", length: 22, breadth: 16, height: 12 },
+      { _id: "v8", title: "1kg", weight: 1, salePrice: 849, mrp: 949, stock: 5, sku: "DN1000", length: 25, breadth: 18, height: 15 },
     ],
   },
 ];
@@ -142,9 +142,27 @@ export const productService = {
 
         // Format variants as JSON string array
         const parseVariantWeightNum = (val, titleFallback) => {
-          if (typeof val === 'number' && !isNaN(val) && val > 0) return val;
-          const match = String(val || titleFallback || '').match(/\d+(\.\d+)?/);
-          return match ? Number(match[0]) : 250;
+          if (typeof val === 'number' && !isNaN(val) && val > 0) {
+            return val >= 10 ? parseFloat((val / 1000).toFixed(3)) : val;
+          }
+          const str = String(val || '').trim();
+          if (str) {
+            const num = parseFloat(str.replace(/[^0-9.]/g, ''));
+            if (!isNaN(num) && num > 0) {
+              return num >= 10 ? parseFloat((num / 1000).toFixed(3)) : num;
+            }
+          }
+          const titleStr = String(titleFallback || '').toLowerCase().trim();
+          const titleMatch = titleStr.match(/[\d.]+/);
+          if (titleMatch) {
+            const num = parseFloat(titleMatch[0]);
+            if (!isNaN(num) && num > 0) {
+              if (titleStr.includes('kg')) return num;
+              if (num >= 10) return parseFloat((num / 1000).toFixed(3));
+              return num;
+            }
+          }
+          return 0.25;
         };
 
         const variantsArr =
@@ -165,7 +183,7 @@ export const productService = {
                 {
                   shiprocketId: randomShiprocketId + 1,
                   title: productData.weight || "250g",
-                  weight: parseVariantWeightNum(productData.weight, "250"),
+                  weight: parseVariantWeightNum(productData.weight, "0.25"),
                   salePrice: Number(productData.salePrice) || 349,
                   length: 20,
                   breadth: 15,

@@ -47,9 +47,27 @@ const formatFileSize = (bytes) => {
 };
 
 const parseVariantWeight = (val, titleFallback) => {
-  if (typeof val === 'number' && !isNaN(val) && val > 0) return val;
-  const match = String(val || titleFallback || '').match(/\d+(\.\d+)?/);
-  return match ? Number(match[0]) : 250;
+  if (typeof val === 'number' && !isNaN(val) && val > 0) {
+    return val >= 10 ? parseFloat((val / 1000).toFixed(3)) : val;
+  }
+  const str = String(val || '').trim();
+  if (str) {
+    const num = parseFloat(str.replace(/[^0-9.]/g, ''));
+    if (!isNaN(num) && num > 0) {
+      return num >= 10 ? parseFloat((num / 1000).toFixed(3)) : num;
+    }
+  }
+  const titleStr = String(titleFallback || '').toLowerCase().trim();
+  const titleMatch = titleStr.match(/[\d.]+/);
+  if (titleMatch) {
+    const num = parseFloat(titleMatch[0]);
+    if (!isNaN(num) && num > 0) {
+      if (titleStr.includes('kg')) return num;
+      if (num >= 10) return parseFloat((num / 1000).toFixed(3));
+      return num;
+    }
+  }
+  return 0.25;
 };
 
 const ProductManagement = () => {
@@ -139,7 +157,7 @@ const ProductManagement = () => {
     variants: [
       {
         title: '250g',
-        weight: 250,
+        weight: 0.25,
         salePrice: 349,
         mrp: 399,
         stock: 20,
@@ -208,7 +226,7 @@ const ProductManagement = () => {
       variants: [
         {
           title: '250g',
-          weight: 250,
+          weight: 0.25,
           salePrice: 349,
           mrp: 399,
           stock: 20,
@@ -276,7 +294,7 @@ const ProductManagement = () => {
         ...prev.variants,
         {
           title: '500g',
-          weight: 500,
+          weight: 0.5,
           salePrice: Math.round(prev.salePrice * 1.8),
           mrp: Math.round(prev.mrp * 1.8),
           stock: 10,
@@ -301,9 +319,13 @@ const ProductManagement = () => {
       const updated = [...prev.variants];
       const current = { ...updated[index], [field]: value };
       if (field === 'title' && typeof value === 'string') {
-        const match = value.match(/\d+(\.\d+)?/);
+        const titleLower = value.toLowerCase();
+        const match = titleLower.match(/[\d.]+/);
         if (match) {
-          current.weight = Number(match[0]);
+          const num = parseFloat(match[0]);
+          if (!isNaN(num) && num > 0) {
+            current.weight = titleLower.includes('kg') ? num : (num >= 10 ? parseFloat((num / 1000).toFixed(3)) : num);
+          }
         }
       }
       updated[index] = current;
@@ -339,7 +361,7 @@ const ProductManagement = () => {
         }
         const weightNum = parseVariantWeight(v.weight, v.title);
         if (!weightNum || weightNum <= 0) {
-          setErrorMessage(`Weight is required for variant #${i + 1} ("${v.title}"). Please enter a valid number (e.g. 250, 500).`);
+          setErrorMessage(`Weight is required for variant #${i + 1} ("${v.title}"). Please enter a valid weight in kg (e.g. 0.25, 0.5).`);
           return;
         }
         if (
@@ -424,7 +446,7 @@ const ProductManagement = () => {
               {
                 shiprocketId: randomShiprocketId + 1,
                 title: formData.weight || '250g',
-                weight: parseVariantWeight(formData.weight, '250'),
+                weight: parseVariantWeight(formData.weight, '0.25'),
                 salePrice: Number(formData.salePrice),
                 length: 20,
                 breadth: 15,
@@ -511,7 +533,7 @@ const ProductManagement = () => {
         : [
             {
               title: product.weight || '250g',
-              weight: parseVariantWeight(product.weight, '250'),
+              weight: parseVariantWeight(product.weight, '0.25'),
               salePrice: product.salePrice ?? 349,
               mrp: product.mrp ?? 399,
               stock: product.stock ?? 20,
@@ -650,7 +672,7 @@ const ProductManagement = () => {
         ...prev.variants,
         {
           title: '500g',
-          weight: 500,
+          weight: 0.5,
           salePrice: Math.round((prev.salePrice || 349) * 1.8),
           mrp: Math.round((prev.mrp || 399) * 1.8),
           stock: 10,
@@ -675,9 +697,13 @@ const ProductManagement = () => {
       const updated = [...prev.variants];
       const current = { ...updated[index], [field]: value };
       if (field === 'title' && typeof value === 'string') {
-        const match = value.match(/\d+(\.\d+)?/);
+        const titleLower = value.toLowerCase();
+        const match = titleLower.match(/[\d.]+/);
         if (match) {
-          current.weight = Number(match[0]);
+          const num = parseFloat(match[0]);
+          if (!isNaN(num) && num > 0) {
+            current.weight = titleLower.includes('kg') ? num : (num >= 10 ? parseFloat((num / 1000).toFixed(3)) : num);
+          }
         }
       }
       updated[index] = current;
@@ -713,7 +739,7 @@ const ProductManagement = () => {
         }
         const weightNum = parseVariantWeight(v.weight, v.title);
         if (!weightNum || weightNum <= 0) {
-          setEditErrorMessage(`Weight is required for variant #${i + 1} ("${v.title}"). Please enter a valid number (e.g. 250, 500).`);
+          setEditErrorMessage(`Weight is required for variant #${i + 1} ("${v.title}"). Please enter a valid weight in kg (e.g. 0.25, 0.5).`);
           return;
         }
         if (
@@ -977,7 +1003,7 @@ const ProductManagement = () => {
                             <span>{v.title}</span>
                             <span className="text-pink-400 font-semibold">(₹{v.salePrice})</span>
                             <span className="text-slate-400 text-[9px] font-mono">
-                              [{v.weight ? `${v.weight}g` : ''}{(v.length || v.breadth || v.height) ? ` • ${v.length || 0}×${v.breadth || 0}×${v.height || 0}cm` : ''}]
+                              [{v.weight ? `${Number(v.weight) >= 10 ? (Number(v.weight) / 1000) : v.weight}kg` : ''}{(v.length || v.breadth || v.height) ? ` • ${v.length || 0}×${v.breadth || 0}×${v.height || 0}cm` : ''}]
                             </span>
                           </span>
                         ))}
@@ -1547,24 +1573,24 @@ const ProductManagement = () => {
                               Shiprocket Package & Shipping (Required) *
                             </span>
                             <span className="text-[9px] text-slate-400">
-                              Weight in grams (number only, e.g. 250) • Dimensions in cm
+                              Weight in kg (e.g. 0.25, 0.5) • Dimensions in cm
                             </span>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <div>
-                              <span className="text-[10px] text-slate-400 block mb-0.5">Weight (g) *</span>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Weight (kg) *</span>
                               <input
                                 type="number"
                                 required
-                                min={1}
+                                min={0.001}
                                 step="any"
-                                placeholder="e.g. 250"
+                                placeholder="e.g. 0.25"
                                 value={v.weight ?? ''}
                                 onChange={(e) =>
                                   handleVariantChange(
                                     idx,
                                     'weight',
-                                    e.target.value === '' ? '' : Number(e.target.value)
+                                    e.target.value === '' ? '' : e.target.value
                                   )
                                 }
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500 font-mono"
@@ -2306,24 +2332,24 @@ const ProductManagement = () => {
                               Shiprocket Package & Shipping (Required) *
                             </span>
                             <span className="text-[9px] text-slate-400">
-                              Weight in grams (number only, e.g. 250) • Dimensions in cm
+                              Weight in kg (e.g. 0.25, 0.5) • Dimensions in cm
                             </span>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <div>
-                              <span className="text-[10px] text-slate-400 block mb-0.5">Weight (g) *</span>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Weight (kg) *</span>
                               <input
                                 type="number"
                                 required
-                                min={1}
+                                min={0.001}
                                 step="any"
-                                placeholder="e.g. 250"
+                                placeholder="e.g. 0.25"
                                 value={v.weight ?? ''}
                                 onChange={(e) =>
                                   handleEditVariantChange(
                                     idx,
                                     'weight',
-                                    e.target.value === '' ? '' : Number(e.target.value)
+                                    e.target.value === '' ? '' : e.target.value
                                   )
                                 }
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500 font-mono"
