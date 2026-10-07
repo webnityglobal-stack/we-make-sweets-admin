@@ -46,6 +46,12 @@ const formatFileSize = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const parseVariantWeight = (val, titleFallback) => {
+  if (typeof val === 'number' && !isNaN(val) && val > 0) return val;
+  const match = String(val || titleFallback || '').match(/\d+(\.\d+)?/);
+  return match ? Number(match[0]) : 250;
+};
+
 const ProductManagement = () => {
   const { products, isLoading, addProduct, updateProduct, deleteProduct, deleteProductImage } =
     useProducts();
@@ -61,7 +67,7 @@ const ProductManagement = () => {
 
   // Accordion tabs in add modal
   const [showNutrition, setShowNutrition] = useState(false);
-  const [showVariants, setShowVariants] = useState(false);
+  const [showVariants, setShowVariants] = useState(true);
   const [showCoupons, setShowCoupons] = useState(false);
 
   // Selected image files (up to 5) for Add modal
@@ -75,7 +81,7 @@ const ProductManagement = () => {
   const [editSelectedFiles, setEditSelectedFiles] = useState([]);
   const [editPreviewUrls, setEditPreviewUrls] = useState([]);
   const [showEditNutrition, setShowEditNutrition] = useState(false);
-  const [showEditVariants, setShowEditVariants] = useState(false);
+  const [showEditVariants, setShowEditVariants] = useState(true);
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
   const [editSubmittingStatus, setEditSubmittingStatus] = useState('');
   const [editErrorMessage, setEditErrorMessage] = useState('');
@@ -133,10 +139,14 @@ const ProductManagement = () => {
     variants: [
       {
         title: '250g',
+        weight: 250,
         salePrice: 349,
         mrp: 399,
         stock: 20,
         sku: 'MSC251',
+        length: 20,
+        breadth: 15,
+        height: 10,
       },
     ],
     coupons: [],
@@ -198,10 +208,14 @@ const ProductManagement = () => {
       variants: [
         {
           title: '250g',
+          weight: 250,
           salePrice: 349,
           mrp: 399,
           stock: 20,
           sku: `SWT-${timestamp}`,
+          length: 20,
+          breadth: 15,
+          height: 10,
         },
       ],
       coupons: [],
@@ -262,10 +276,14 @@ const ProductManagement = () => {
         ...prev.variants,
         {
           title: '500g',
+          weight: 500,
           salePrice: Math.round(prev.salePrice * 1.8),
           mrp: Math.round(prev.mrp * 1.8),
           stock: 10,
           sku: nextSku,
+          length: 20,
+          breadth: 15,
+          height: 10,
         },
       ],
     }));
@@ -281,7 +299,14 @@ const ProductManagement = () => {
   const handleVariantChange = (index, field, value) => {
     setFormData((prev) => {
       const updated = [...prev.variants];
-      updated[index] = { ...updated[index], [field]: value };
+      const current = { ...updated[index], [field]: value };
+      if (field === 'title' && typeof value === 'string') {
+        const match = value.match(/\d+(\.\d+)?/);
+        if (match) {
+          current.weight = Number(match[0]);
+        }
+      }
+      updated[index] = current;
       return { ...prev, variants: updated };
     });
   };
@@ -302,6 +327,41 @@ const ProductManagement = () => {
     if (!formData.description.trim()) {
       setErrorMessage('Please enter the full description.');
       return;
+    }
+
+    // Validate variants LBH & weight
+    if (formData.variants && formData.variants.length > 0) {
+      for (let i = 0; i < formData.variants.length; i++) {
+        const v = formData.variants[i];
+        if (!v.title?.trim()) {
+          setErrorMessage(`Please enter a title for variant #${i + 1}.`);
+          return;
+        }
+        const weightNum = parseVariantWeight(v.weight, v.title);
+        if (!weightNum || weightNum <= 0) {
+          setErrorMessage(`Weight is required for variant #${i + 1} ("${v.title}"). Please enter a valid number (e.g. 250, 500).`);
+          return;
+        }
+        if (
+          v.length === '' ||
+          v.length === null ||
+          v.length === undefined ||
+          Number(v.length) <= 0 ||
+          v.breadth === '' ||
+          v.breadth === null ||
+          v.breadth === undefined ||
+          Number(v.breadth) <= 0 ||
+          v.height === '' ||
+          v.height === null ||
+          v.height === undefined ||
+          Number(v.height) <= 0
+        ) {
+          setErrorMessage(
+            `Please enter valid Box Dimensions: Length, Breadth, and Height (must be greater than 0 cm) for variant #${i + 1} ("${v.title || 'Untitled'}").`
+          );
+          return;
+        }
+      }
     }
 
     setIsSubmitting(true);
@@ -345,25 +405,33 @@ const ProductManagement = () => {
       // Nutrition object
       fd.append('nutrition', JSON.stringify(formData.nutrition));
 
-      // Variants array
+      // Variants array with required weight, length, breadth, height
       const variantsArr =
         formData.variants && formData.variants.length > 0
           ? formData.variants.map((v, i) => ({
+              shiprocketId: randomShiprocketId + i + 1,
               title: v.title,
+              weight: parseVariantWeight(v.weight, v.title),
               salePrice: Number(v.salePrice),
+              length: Number(v.length) || 20,
+              breadth: Number(v.breadth) || 15,
+              height: Number(v.height) || 10,
               mrp: Number(v.mrp),
               stock: Number(v.stock),
               sku: v.sku || `SKU-${Date.now()}-${i}`,
-              shiprocketId: randomShiprocketId + i + 1,
             }))
           : [
               {
-                title: formData.weight,
+                shiprocketId: randomShiprocketId + 1,
+                title: formData.weight || '250g',
+                weight: parseVariantWeight(formData.weight, '250'),
                 salePrice: Number(formData.salePrice),
+                length: 20,
+                breadth: 15,
+                height: 10,
                 mrp: Number(formData.mrp),
                 stock: Number(formData.stock),
                 sku: `SKU-${Date.now()}`,
-                shiprocketId: randomShiprocketId + 1,
               },
             ];
       fd.append('variants', JSON.stringify(variantsArr));
@@ -430,19 +498,27 @@ const ProductManagement = () => {
         ? product.variants.map((v, i) => ({
             ...(v._id ? { _id: v._id } : {}),
             title: v.title || '250g',
+            weight: parseVariantWeight(v.weight, v.title),
             salePrice: v.salePrice ?? product.salePrice ?? 349,
             mrp: v.mrp ?? product.mrp ?? 399,
             stock: v.stock ?? product.stock ?? 20,
             sku: v.sku || `SKU-${Date.now().toString().slice(-4)}-${i}`,
+            length: v.length !== undefined && v.length !== null ? Number(v.length) : 20,
+            breadth: v.breadth !== undefined && v.breadth !== null ? Number(v.breadth) : 15,
+            height: v.height !== undefined && v.height !== null ? Number(v.height) : 10,
             ...(v.shiprocketId ? { shiprocketId: v.shiprocketId } : {}),
           }))
         : [
             {
               title: product.weight || '250g',
+              weight: parseVariantWeight(product.weight, '250'),
               salePrice: product.salePrice ?? 349,
               mrp: product.mrp ?? 399,
               stock: product.stock ?? 20,
               sku: `SKU-${Date.now().toString().slice(-4)}`,
+              length: 20,
+              breadth: 15,
+              height: 10,
             },
           ];
 
@@ -574,10 +650,14 @@ const ProductManagement = () => {
         ...prev.variants,
         {
           title: '500g',
+          weight: 500,
           salePrice: Math.round((prev.salePrice || 349) * 1.8),
           mrp: Math.round((prev.mrp || 399) * 1.8),
           stock: 10,
           sku: nextSku,
+          length: 20,
+          breadth: 15,
+          height: 10,
         },
       ],
     }));
@@ -593,7 +673,14 @@ const ProductManagement = () => {
   const handleEditVariantChange = (index, field, value) => {
     setEditFormData((prev) => {
       const updated = [...prev.variants];
-      updated[index] = { ...updated[index], [field]: value };
+      const current = { ...updated[index], [field]: value };
+      if (field === 'title' && typeof value === 'string') {
+        const match = value.match(/\d+(\.\d+)?/);
+        if (match) {
+          current.weight = Number(match[0]);
+        }
+      }
+      updated[index] = current;
       return { ...prev, variants: updated };
     });
   };
@@ -614,6 +701,41 @@ const ProductManagement = () => {
     if (!editFormData.description.trim()) {
       setEditErrorMessage('Please enter the full description.');
       return;
+    }
+
+    // Validate variants LBH & weight
+    if (editFormData.variants && editFormData.variants.length > 0) {
+      for (let i = 0; i < editFormData.variants.length; i++) {
+        const v = editFormData.variants[i];
+        if (!v.title?.trim()) {
+          setEditErrorMessage(`Please enter a title for variant #${i + 1}.`);
+          return;
+        }
+        const weightNum = parseVariantWeight(v.weight, v.title);
+        if (!weightNum || weightNum <= 0) {
+          setEditErrorMessage(`Weight is required for variant #${i + 1} ("${v.title}"). Please enter a valid number (e.g. 250, 500).`);
+          return;
+        }
+        if (
+          v.length === '' ||
+          v.length === null ||
+          v.length === undefined ||
+          Number(v.length) <= 0 ||
+          v.breadth === '' ||
+          v.breadth === null ||
+          v.breadth === undefined ||
+          Number(v.breadth) <= 0 ||
+          v.height === '' ||
+          v.height === null ||
+          v.height === undefined ||
+          Number(v.height) <= 0
+        ) {
+          setEditErrorMessage(
+            `Please enter valid Box Dimensions: Length, Breadth, and Height (must be greater than 0 cm) for variant #${i + 1} ("${v.title || 'Untitled'}").`
+          );
+          return;
+        }
+      }
     }
 
     setIsEditSubmitting(true);
@@ -647,7 +769,11 @@ const ProductManagement = () => {
       const variantsArr = editFormData.variants.map((v, i) => ({
         ...(v._id ? { _id: v._id } : {}),
         title: v.title,
+        weight: parseVariantWeight(v.weight, v.title),
         salePrice: Number(v.salePrice),
+        length: Number(v.length) || 20,
+        breadth: Number(v.breadth) || 15,
+        height: Number(v.height) || 10,
         mrp: Number(v.mrp),
         stock: Number(v.stock),
         sku: v.sku || `SKU-${Date.now()}-${i}`,
@@ -846,9 +972,13 @@ const ProductManagement = () => {
                         {product.variants.map((v, i) => (
                           <span
                             key={i}
-                            className="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700"
+                            className="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700 flex items-center gap-1"
                           >
-                            {v.title} (₹{v.salePrice})
+                            <span>{v.title}</span>
+                            <span className="text-pink-400 font-semibold">(₹{v.salePrice})</span>
+                            <span className="text-slate-400 text-[9px] font-mono">
+                              [{v.weight ? `${v.weight}g` : ''}{(v.length || v.breadth || v.height) ? ` • ${v.length || 0}×${v.breadth || 0}×${v.height || 0}cm` : ''}]
+                            </span>
                           </span>
                         ))}
                       </div>
@@ -1318,62 +1448,174 @@ const ProductManagement = () => {
                 </button>
 
                 {showVariants && (
-                  <div className="p-3.5 bg-slate-950/40 space-y-3 border-t border-slate-800">
+                  <div className="p-3.5 bg-slate-950/40 space-y-3.5 border-t border-slate-800">
                     {formData.variants.map((v, idx) => (
                       <div
                         key={idx}
-                        className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 grid grid-cols-5 gap-2 items-center"
+                        className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2.5 shadow-sm"
                       >
-                        <div>
-                          <span className="text-[9px] text-slate-400 block">Title</span>
-                          <input
-                            type="text"
-                            value={v.title}
-                            onChange={(e) => handleVariantChange(idx, 'title', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
-                          />
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 block">Sale (₹)</span>
-                          <input
-                            type="number"
-                            value={v.salePrice}
-                            onChange={(e) =>
-                              handleVariantChange(idx, 'salePrice', Number(e.target.value))
-                            }
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
-                          />
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 block">MRP (₹)</span>
-                          <input
-                            type="number"
-                            value={v.mrp}
-                            onChange={(e) =>
-                              handleVariantChange(idx, 'mrp', Number(e.target.value))
-                            }
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
-                          />
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 block">SKU</span>
-                          <input
-                            type="text"
-                            value={v.sku}
-                            onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
-                          />
-                        </div>
-                        <div className="text-right pt-3">
+                        {/* Header of Variant */}
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
+                          <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-pink-500/20 text-pink-400 text-[10px] flex items-center justify-center font-bold">
+                              {idx + 1}
+                            </span>
+                            Variant #{idx + 1} {v.title ? `(${v.title})` : ''}
+                          </span>
                           {formData.variants.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemoveVariant(idx)}
-                              className="text-rose-400 hover:text-rose-300 text-[10px] underline"
+                              className="text-rose-400 hover:text-rose-300 text-[11px] hover:underline flex items-center gap-1 cursor-pointer"
                             >
-                              Remove
+                              <Trash2 className="w-3 h-3" />
+                              Remove Variant
                             </button>
                           )}
+                        </div>
+
+                        {/* Row 1: Title, SKU, Sale Price, MRP, Stock */}
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Title / Weight *</span>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. 250g"
+                              value={v.title}
+                              onChange={(e) => handleVariantChange(idx, 'title', e.target.value)}
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">SKU *</span>
+                            <input
+                              type="text"
+                              required
+                              placeholder="SKU"
+                              value={v.sku}
+                              onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Sale Price (₹) *</span>
+                            <input
+                              type="number"
+                              required
+                              min={0}
+                              value={v.salePrice}
+                              onChange={(e) =>
+                                handleVariantChange(idx, 'salePrice', Number(e.target.value))
+                              }
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">MRP (₹) *</span>
+                            <input
+                              type="number"
+                              required
+                              min={0}
+                              value={v.mrp}
+                              onChange={(e) =>
+                                handleVariantChange(idx, 'mrp', Number(e.target.value))
+                              }
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Stock Quantity *</span>
+                            <input
+                              type="number"
+                              required
+                              min={0}
+                              value={v.stock}
+                              onChange={(e) =>
+                                handleVariantChange(idx, 'stock', Number(e.target.value))
+                              }
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 2: Box Dimensions & Weight (Weight, Length, Breadth, Height) */}
+                        <div className="bg-slate-950/70 rounded-lg p-2.5 border border-slate-800">
+                          <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                            <span className="text-[10px] font-semibold text-pink-400 flex items-center gap-1">
+                              <Package className="w-3 h-3" />
+                              Shiprocket Package & Shipping (Required) *
+                            </span>
+                            <span className="text-[9px] text-slate-400">
+                              Weight in grams (number only, e.g. 250) • Dimensions in cm
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Weight (g) *</span>
+                              <input
+                                type="number"
+                                required
+                                min={1}
+                                step="any"
+                                placeholder="e.g. 250"
+                                value={v.weight ?? ''}
+                                onChange={(e) =>
+                                  handleVariantChange(
+                                    idx,
+                                    'weight',
+                                    e.target.value === '' ? '' : Number(e.target.value)
+                                  )
+                                }
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500 font-mono"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Length (cm) *</span>
+                              <input
+                                type="number"
+                                required
+                                min={0.1}
+                                step="any"
+                                placeholder="e.g. 20"
+                                value={v.length ?? ''}
+                                onChange={(e) =>
+                                  handleVariantChange(idx, 'length', e.target.value === '' ? '' : Number(e.target.value))
+                                }
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500 font-mono"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Breadth (cm) *</span>
+                              <input
+                                type="number"
+                                required
+                                min={0.1}
+                                step="any"
+                                placeholder="e.g. 15"
+                                value={v.breadth ?? ''}
+                                onChange={(e) =>
+                                  handleVariantChange(idx, 'breadth', e.target.value === '' ? '' : Number(e.target.value))
+                                }
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500 font-mono"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Height (cm) *</span>
+                              <input
+                                type="number"
+                                required
+                                min={0.1}
+                                step="any"
+                                placeholder="e.g. 10"
+                                value={v.height ?? ''}
+                                onChange={(e) =>
+                                  handleVariantChange(idx, 'height', e.target.value === '' ? '' : Number(e.target.value))
+                                }
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-pink-500 font-mono"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1381,9 +1623,10 @@ const ProductManagement = () => {
                     <button
                       type="button"
                       onClick={handleAddVariant}
-                      className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition"
                     >
-                      + Add Another Variant
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Another Variant
                     </button>
                   </div>
                 )}
@@ -1960,66 +2203,178 @@ const ProductManagement = () => {
                 </button>
 
                 {showEditVariants && (
-                  <div className="p-3.5 bg-slate-950/40 space-y-3 border-t border-slate-800">
+                  <div className="p-3.5 bg-slate-950/40 space-y-3.5 border-t border-slate-800">
                     {editFormData.variants.map((v, idx) => (
                       <div
                         key={idx}
-                        className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 grid grid-cols-5 gap-2 items-center"
+                        className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2.5 shadow-sm"
                       >
-                        <div>
-                          <span className="text-[9px] text-slate-400 block">Title</span>
-                          <input
-                            type="text"
-                            value={v.title}
-                            onChange={(e) =>
-                              handleEditVariantChange(idx, 'title', e.target.value)
-                            }
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
-                          />
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 block">Sale (₹)</span>
-                          <input
-                            type="number"
-                            value={v.salePrice}
-                            onChange={(e) =>
-                              handleEditVariantChange(idx, 'salePrice', Number(e.target.value))
-                            }
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
-                          />
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 block">MRP (₹)</span>
-                          <input
-                            type="number"
-                            value={v.mrp}
-                            onChange={(e) =>
-                              handleEditVariantChange(idx, 'mrp', Number(e.target.value))
-                            }
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
-                          />
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 block">SKU</span>
-                          <input
-                            type="text"
-                            value={v.sku}
-                            onChange={(e) =>
-                              handleEditVariantChange(idx, 'sku', e.target.value)
-                            }
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-1 text-white text-[11px]"
-                          />
-                        </div>
-                        <div className="text-right pt-3">
+                        {/* Header of Variant */}
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
+                          <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 text-[10px] flex items-center justify-center font-bold">
+                              {idx + 1}
+                            </span>
+                            Variant #{idx + 1} {v.title ? `(${v.title})` : ''}
+                          </span>
                           {editFormData.variants.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleEditRemoveVariant(idx)}
-                              className="text-rose-400 hover:text-rose-300 text-[10px] underline cursor-pointer"
+                              className="text-rose-400 hover:text-rose-300 text-[11px] hover:underline flex items-center gap-1 cursor-pointer"
                             >
-                              Remove
+                              <Trash2 className="w-3 h-3" />
+                              Remove Variant
                             </button>
                           )}
+                        </div>
+
+                        {/* Row 1: Title, SKU, Sale Price, MRP, Stock */}
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Title / Weight *</span>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. 250g"
+                              value={v.title}
+                              onChange={(e) =>
+                                handleEditVariantChange(idx, 'title', e.target.value)
+                              }
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">SKU *</span>
+                            <input
+                              type="text"
+                              required
+                              placeholder="SKU"
+                              value={v.sku}
+                              onChange={(e) =>
+                                handleEditVariantChange(idx, 'sku', e.target.value)
+                              }
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Sale Price (₹) *</span>
+                            <input
+                              type="number"
+                              required
+                              min={0}
+                              value={v.salePrice}
+                              onChange={(e) =>
+                                handleEditVariantChange(idx, 'salePrice', Number(e.target.value))
+                              }
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">MRP (₹) *</span>
+                            <input
+                              type="number"
+                              required
+                              min={0}
+                              value={v.mrp}
+                              onChange={(e) =>
+                                handleEditVariantChange(idx, 'mrp', Number(e.target.value))
+                              }
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Stock Quantity *</span>
+                            <input
+                              type="number"
+                              required
+                              min={0}
+                              value={v.stock}
+                              onChange={(e) =>
+                                handleEditVariantChange(idx, 'stock', Number(e.target.value))
+                              }
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 2: Box Dimensions & Weight (Weight, Length, Breadth, Height) */}
+                        <div className="bg-slate-950/70 rounded-lg p-2.5 border border-slate-800">
+                          <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                            <span className="text-[10px] font-semibold text-blue-400 flex items-center gap-1">
+                              <Package className="w-3 h-3" />
+                              Shiprocket Package & Shipping (Required) *
+                            </span>
+                            <span className="text-[9px] text-slate-400">
+                              Weight in grams (number only, e.g. 250) • Dimensions in cm
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Weight (g) *</span>
+                              <input
+                                type="number"
+                                required
+                                min={1}
+                                step="any"
+                                placeholder="e.g. 250"
+                                value={v.weight ?? ''}
+                                onChange={(e) =>
+                                  handleEditVariantChange(
+                                    idx,
+                                    'weight',
+                                    e.target.value === '' ? '' : Number(e.target.value)
+                                  )
+                                }
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500 font-mono"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Length (cm) *</span>
+                              <input
+                                type="number"
+                                required
+                                min={0.1}
+                                step="any"
+                                placeholder="e.g. 20"
+                                value={v.length ?? ''}
+                                onChange={(e) =>
+                                  handleEditVariantChange(idx, 'length', e.target.value === '' ? '' : Number(e.target.value))
+                                }
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500 font-mono"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Breadth (cm) *</span>
+                              <input
+                                type="number"
+                                required
+                                min={0.1}
+                                step="any"
+                                placeholder="e.g. 15"
+                                value={v.breadth ?? ''}
+                                onChange={(e) =>
+                                  handleEditVariantChange(idx, 'breadth', e.target.value === '' ? '' : Number(e.target.value))
+                                }
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500 font-mono"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block mb-0.5">Height (cm) *</span>
+                              <input
+                                type="number"
+                                required
+                                min={0.1}
+                                step="any"
+                                placeholder="e.g. 10"
+                                value={v.height ?? ''}
+                                onChange={(e) =>
+                                  handleEditVariantChange(idx, 'height', e.target.value === '' ? '' : Number(e.target.value))
+                                }
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-white text-[11px] focus:outline-none focus:border-blue-500 font-mono"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -2027,9 +2382,10 @@ const ProductManagement = () => {
                     <button
                       type="button"
                       onClick={handleEditAddVariant}
-                      className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition"
                     >
-                      + Add Another Variant
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Another Variant
                     </button>
                   </div>
                 )}

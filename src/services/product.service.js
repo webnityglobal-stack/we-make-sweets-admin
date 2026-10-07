@@ -18,9 +18,9 @@ const fallbackProducts = [
     storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
-      { _id: "v1", title: "250g", salePrice: 349, mrp: 399, stock: 20, sku: "MSC251" },
-      { _id: "v2", title: "500g", salePrice: 649, mrp: 749, stock: 12, sku: "MSC501" },
-      { _id: "v3", title: "1kg", salePrice: 1199, mrp: 1399, stock: 6, sku: "MSC1001" },
+      { _id: "v1", title: "250g", weight: 250, salePrice: 349, mrp: 399, stock: 20, sku: "MSC251", length: 20, breadth: 15, height: 10 },
+      { _id: "v2", title: "500g", weight: 500, salePrice: 649, mrp: 749, stock: 12, sku: "MSC501", length: 22, breadth: 16, height: 12 },
+      { _id: "v3", title: "1kg", weight: 1000, salePrice: 1199, mrp: 1399, stock: 6, sku: "MSC1001", length: 25, breadth: 18, height: 15 },
     ],
   },
   {
@@ -40,8 +40,8 @@ const fallbackProducts = [
     storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
-      { _id: "v4", title: "250g", salePrice: 349, mrp: 399, stock: 20, sku: "MSC250" },
-      { _id: "v5", title: "500g", salePrice: 649, mrp: 749, stock: 12, sku: "MSC500" },
+      { _id: "v4", title: "250g", weight: 250, salePrice: 349, mrp: 399, stock: 20, sku: "MSC250", length: 20, breadth: 15, height: 10 },
+      { _id: "v5", title: "500g", weight: 500, salePrice: 649, mrp: 749, stock: 12, sku: "MSC500", length: 22, breadth: 16, height: 12 },
     ],
   },
   {
@@ -61,9 +61,9 @@ const fallbackProducts = [
     storage: "Store in a cool and dry place. Keep away from direct sunlight.",
     countryOfOrigin: "India",
     variants: [
-      { _id: "v6", title: "250g", salePrice: 249, mrp: 299, stock: 15, sku: "DN250" },
-      { _id: "v7", title: "500g", salePrice: 449, mrp: 499, stock: 10, sku: "DN500" },
-      { _id: "v8", title: "1kg", salePrice: 849, mrp: 949, stock: 5, sku: "DN1000" },
+      { _id: "v6", title: "250g", weight: 250, salePrice: 249, mrp: 299, stock: 15, sku: "DN250", length: 20, breadth: 15, height: 10 },
+      { _id: "v7", title: "500g", weight: 500, salePrice: 449, mrp: 499, stock: 10, sku: "DN500", length: 22, breadth: 16, height: 12 },
+      { _id: "v8", title: "1kg", weight: 1000, salePrice: 849, mrp: 949, stock: 5, sku: "DN1000", length: 25, breadth: 18, height: 15 },
     ],
   },
 ];
@@ -141,17 +141,38 @@ export const productService = {
         fd.append("nutrition", JSON.stringify(nutritionObj));
 
         // Format variants as JSON string array
+        const parseVariantWeightNum = (val, titleFallback) => {
+          if (typeof val === 'number' && !isNaN(val) && val > 0) return val;
+          const match = String(val || titleFallback || '').match(/\d+(\.\d+)?/);
+          return match ? Number(match[0]) : 250;
+        };
+
         const variantsArr =
           Array.isArray(productData.variants) && productData.variants.length > 0
-            ? productData.variants
+            ? productData.variants.map((v, i) => ({
+                shiprocketId: v.shiprocketId || randomShiprocketId + i + 1,
+                title: v.title,
+                weight: parseVariantWeightNum(v.weight, v.title),
+                salePrice: Number(v.salePrice),
+                length: Number(v.length) || 20,
+                breadth: Number(v.breadth) || 15,
+                height: Number(v.height) || 10,
+                mrp: Number(v.mrp),
+                stock: Number(v.stock),
+                sku: v.sku || `SKU-${Date.now().toString().slice(-6)}-${i}`,
+              }))
             : [
                 {
+                  shiprocketId: randomShiprocketId + 1,
                   title: productData.weight || "250g",
+                  weight: parseVariantWeightNum(productData.weight, "250"),
                   salePrice: Number(productData.salePrice) || 349,
+                  length: 20,
+                  breadth: 15,
+                  height: 10,
                   mrp: Number(productData.mrp) || 399,
                   stock: Number(productData.stock) || 20,
                   sku: `SKU-${Date.now().toString().slice(-6)}`,
-                  shiprocketId: randomShiprocketId + 1,
                 },
               ];
         fd.append("variants", JSON.stringify(variantsArr));
