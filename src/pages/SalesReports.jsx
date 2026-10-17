@@ -192,7 +192,7 @@ const SalesReports = () => {
             Last 30 Days
           </button>
 
-          <button
+          {/* <button
             onClick={() => setIsCustomMode(true)}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               isCustomMode
@@ -201,7 +201,7 @@ const SalesReports = () => {
             }`}
           >
             Custom Range
-          </button>
+          </button> */}
         </div>
 
         {/* Custom Range Picker */}
