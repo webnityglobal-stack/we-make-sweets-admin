@@ -57,7 +57,7 @@ const AdminLayout = () => {
                     {user?.name || 'Admin'}
                   </span>
                   <span className="text-[10px] text-slate-400 leading-tight">
-                    {user?.email || 'admin@yopmail.com'}
+                    {user?.email || 'demo@yopmail.com'}
                   </span>
                 </div>
               </div>

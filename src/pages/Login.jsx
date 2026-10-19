@@ -31,7 +31,7 @@ const Login = () => {
 
   const handleFillDemo = () => {
     setData({
-      email: 'admin@yopmail.com',
+      email: 'demo@yopmail.com',
       password: '67890',
     });
     setLocalError('');
@@ -72,7 +72,7 @@ const Login = () => {
           <div className='flex items-center gap-2'>
             <KeyRound className='w-4 h-4 text-amber-700' />
             <span>
-              <strong>Demo Login:</strong> admin@yopmail.com / 67890
+              <strong>Demo Login:</strong> demo@yopmail.com / 67890
             </span>
           </div>
           <span className='font-semibold text-amber-700 underline'>Fill credentials</span>
