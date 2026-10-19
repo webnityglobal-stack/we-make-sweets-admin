@@ -31,7 +31,7 @@ const Login = () => {
 
   const handleFillDemo = () => {
     setData({
-      email: 'admin@gmail.com',
+      email: 'admin@yopmail.com',
       password: '67890',
     });
     setLocalError('');
