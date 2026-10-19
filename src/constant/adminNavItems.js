@@ -34,6 +34,12 @@ export const adminNavItems = [
         url: "/reels",
         icon: "Film",
       },
+      {
+        title: "Popup Banner",
+        subtitle: "1 Offer / Coupon Modal",
+        url: "/popup-banner",
+        icon: "Megaphone",
+      },
     ],
   },
   {

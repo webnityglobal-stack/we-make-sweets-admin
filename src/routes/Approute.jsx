@@ -24,6 +24,7 @@ const MetaAdsIntegration = lazy(() => import('@/pages/MetaAdsIntegration'));
 const SubAdminManagement = lazy(() => import('@/pages/SubAdminManagement'));
 const HeroBannerManagement = lazy(() => import('@/pages/HeroBannerManagement'));
 const ReelManagement = lazy(() => import('@/pages/ReelManagement'));
+const PopupBannerManagement = lazy(() => import('@/pages/PopupBannerManagement'));
 
 const PageLoader = () => (
   <div className="h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-400">
@@ -89,6 +90,14 @@ const Approute = () => {
           element={
             <Suspense fallback={<PageLoader />}>
               <ReelManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/popup-banner"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <PopupBannerManagement />
             </Suspense>
           }
         />

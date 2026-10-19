@@ -21,6 +21,7 @@ import {
   Calendar,
   Sliders,
   Film,
+  Megaphone,
 } from 'lucide-react';
 
 const formatDate = (dateStr) => {
@@ -201,6 +202,13 @@ const Dashboard = () => {
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500 text-white shadow">
                 {reelsCount || 0} / 12 Added
               </span>
+            </Link>
+            <Link
+              to="/popup-banner"
+              className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white px-3.5 py-2.5 rounded-xl font-semibold text-xs border border-white/25 transition backdrop-blur-sm"
+            >
+              <Megaphone className="w-3.5 h-3.5 text-amber-300" />
+              <span>Popup Banner</span>
             </Link>
           </div>
         </div>
