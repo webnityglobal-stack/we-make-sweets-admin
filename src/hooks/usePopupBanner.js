@@ -61,10 +61,17 @@ export const usePopupBanner = () => {
   };
 
   const uploadImage = async (file) => {
+    if (image) {
+      const msg = "Only 1 image can be uploaded! Please delete the current image before uploading a new one.";
+      setError(msg);
+      throw new Error(msg);
+    }
+
     try {
       setUploading(true);
       setError(null);
       setSuccess(null);
+
 
       // Client-side compression if image is > 2.5MB
       const processedFile = await compressImage(file, 2.5);

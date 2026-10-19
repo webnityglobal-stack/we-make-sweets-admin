@@ -98,14 +98,23 @@ export const popupBannerService = {
     const cleanFilename = filename.split("/").pop();
 
     try {
-      const response = await api.delete(`/image-upload/${cleanFilename}`);
+      // Note: Adding a trailing slash avoids Hostinger edge CDN intercepting
+      // '*.jpg' as static file and blocking CORS preflight for DELETE requests.
+      const response = await api.delete(`/image-upload/${cleanFilename}/`);
       return response.data;
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to delete image";
-      throw new Error(message);
+      // Fallback without trailing slash if needed
+      try {
+        const fallback = await api.delete(`/image-upload/${cleanFilename}`);
+        return fallback.data;
+      } catch (fbError) {
+        const message =
+          error.response?.data?.message ||
+          fbError.response?.data?.message ||
+          error.message ||
+          "Failed to delete image";
+        throw new Error(message);
+      }
     }
   },
 };

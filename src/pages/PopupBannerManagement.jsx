@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   Layers,
   ZoomIn,
+  Lock,
 } from "lucide-react";
 
 const formatBytes = (bytes, decimals = 2) => {
@@ -483,20 +484,29 @@ const PopupBannerManagement = () => {
                   Update or Replace Active Banner
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Want to launch a different promotional banner or coupon? Select a new image to replace the current one.
+                  {image
+                    ? "An image is already active. Delete the current banner first, then upload a new one."
+                    : "Want to launch a different promotional banner or coupon? Select a new image to replace the current one."}
                 </p>
                 <div className="flex flex-wrap items-center gap-2.5 pt-1">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white text-xs font-semibold shadow-md shadow-pink-600/20 transition cursor-pointer disabled:opacity-50"
+                    onClick={() => !image && fileInputRef.current?.click()}
+                    disabled={uploading || !!image}
+                    title={image ? "Delete the current image first before uploading a new one" : "Upload a new banner"}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition ${
+                      image
+                        ? "bg-slate-700/60 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60"
+                        : "bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white shadow-pink-600/20 cursor-pointer"
+                    } disabled:opacity-50`}
                   >
                     {uploading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : image ? (
+                      <Lock className="w-4 h-4" />
                     ) : (
                       <Upload className="w-4 h-4" />
                     )}
-                    <span>{uploading ? "Uploading..." : "Upload New Banner"}</span>
+                    <span>{uploading ? "Uploading..." : image ? "Upload Disabled (1 Slot Used)" : "Upload New Banner"}</span>
                   </button>
 
                   <button
@@ -518,58 +528,6 @@ const PopupBannerManagement = () => {
               </div>
             </div>
           </div>
-
-          {/* If backend returns multiple images from past uploads */}
-          {images && images.length > 1 && (
-            <div className="p-5 border-t border-slate-800 bg-slate-950/40">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
-                Uploaded Images Archive ({images.length} images on server)
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                {images.map((imgItem, idx) => {
-                  const isCurrent = imgItem.filename === image.filename;
-                  return (
-                    <div
-                      key={imgItem.filename || idx}
-                      onClick={() => selectImage(imgItem)}
-                      className={`relative group rounded-xl border p-1.5 transition cursor-pointer ${
-                        isCurrent
-                          ? "border-pink-500 bg-pink-500/10 shadow-md shadow-pink-500/20"
-                          : "border-slate-800 bg-slate-900/60 hover:border-slate-700"
-                      }`}
-                    >
-                      <img
-                        src={imgItem.imageUrl || imgItem.path}
-                        alt={imgItem.filename}
-                        className="w-full h-20 object-cover rounded-lg"
-                      />
-                      <div className="mt-1 flex items-center justify-between text-[10px]">
-                        <span className="truncate max-w-[80px] text-slate-400">
-                          {imgItem.filename}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          {isCurrent && (
-                            <span className="text-pink-400 font-bold">Active</span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(imgItem.filename);
-                            }}
-                            className="text-slate-500 hover:text-rose-400 p-0.5 rounded transition cursor-pointer"
-                            title={`Delete ${imgItem.filename}`}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         /* No Image: Empty Upload Dropzone */
