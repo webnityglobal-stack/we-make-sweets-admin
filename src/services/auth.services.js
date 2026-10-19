@@ -57,6 +57,53 @@ const authService = {
   isAuthenticated: () => {
     return Boolean(localStorage.getItem('token'));
   },
+
+  forgotPassword: async (identifier) => {
+    try {
+      const response = await api.post("/auth/forgot-password", {
+        identifier,
+      });
+      return response.data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to send verification OTP.";
+      throw new Error(message);
+    }
+  },
+
+  verifyResetOTP: async (identifier, otp) => {
+    try {
+      const response = await api.post("/auth/verify-reset-otp", {
+        identifier,
+        otp,
+      });
+      return response.data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Invalid or expired OTP code.";
+      throw new Error(message);
+    }
+  },
+
+  resetPassword: async (identifier, password) => {
+    try {
+      const response = await api.post("/auth/reset-password", {
+        identifier,
+        password,
+      });
+      return response.data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to reset password.";
+      throw new Error(message);
+    }
+  },
 };
 
 export default authService;
