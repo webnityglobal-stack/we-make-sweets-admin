@@ -91,6 +91,14 @@ const CodPrepaidCancelReports = () => {
     ? 'Last 15 Days'
     : selectedRange === '30d'
     ? 'Last 30 Days'
+    : selectedRange === 'last_month'
+    ? (() => {
+        const now = new Date();
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+        const prevYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+        return `${monthNames[prevMonth]} ${prevYear} (Full Month)`;
+      })()
     : 'Last 7 Days';
 
   return (
@@ -177,6 +185,18 @@ const CodPrepaidCancelReports = () => {
             }`}
           >
             Last 30 Days
+          </button>
+
+          <button
+            onClick={() => handleSelectRange('last_month')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              !isCustomMode && selectedRange === 'last_month'
+                ? 'bg-pink-600 text-white shadow-md shadow-pink-600/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+            title="Full previous calendar month — useful for GST filing"
+          >
+            Last Month
           </button>
 
           <button

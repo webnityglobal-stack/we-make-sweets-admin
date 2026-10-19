@@ -6,6 +6,12 @@ export const reportService = {
       let url = "/admin/reports/sales";
       if (customRange && customRange.startDate && customRange.endDate) {
         url += `?startDate=${customRange.startDate}&endDate=${customRange.endDate}`;
+      } else if (range === "last_month") {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+        const fmt = (d) => d.toISOString().split("T")[0];
+        url += `?startDate=${fmt(firstDay)}&endDate=${fmt(lastDay)}`;
       } else {
         const rangeParam = typeof range === "string" ? range : `${range}d`;
         url += `?range=${rangeParam}`;
@@ -93,6 +99,12 @@ export const reportService = {
       let url = "/admin/reports/cod-prepaid-cancel";
       if (customRange && customRange.startDate && customRange.endDate) {
         url += `?startDate=${customRange.startDate}&endDate=${customRange.endDate}`;
+      } else if (range === "last_month") {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+        const fmt = (d) => d.toISOString().split("T")[0];
+        url += `?startDate=${fmt(firstDay)}&endDate=${fmt(lastDay)}`;
       } else {
         const rangeParam = typeof range === "string" ? range : `${range}d`;
         url += `?range=${rangeParam}`;
