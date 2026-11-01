@@ -72,7 +72,7 @@ const Login = () => {
           <div className='flex items-center gap-2'>
             <KeyRound className='w-4 h-4 text-amber-700' />
             <span>
-              <strong>Demo Login:</strong> demo@yopmail.com / 678901
+              <strong>Demo Login:</strong> demo@yopmail.com / test1234
             </span>
           </div>
           <span className='font-semibold text-amber-700 underline'>Fill credentials</span>
